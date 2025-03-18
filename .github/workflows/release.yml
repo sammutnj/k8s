@@ -1,0 +1,51 @@
+name: Release
+description: Create a new release for production deployment
+run-name: Release ${{ inputs.tag }} created
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag. Format must be 'vX.Y.Z'"
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  release:
+    runs-on: default
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Git config
+        uses: ./.github/actions/gha-bot
+      - name: Check tag
+        run: |
+          regex="^v[0-9]+\.[0-9]+\.[0-9]+$"
+          if [[ ${{ inputs.tag }} =~ $regex ]]; then
+            echo "The tag ${{ inputs.tag }} is valid."
+          else
+            echo "The tag ${{ inputs.tag }} is INVALID. It should follow the format vX.Y.Z."
+            exit 1
+          fi
+
+          if git show-ref --tags --verify --quiet "refs/tags/${{ inputs.tag }}"; then
+            echo "Tag ${{ inputs.tag }} exists. Please input another tag."
+            exit 1
+          else
+            echo "Tag $TAG is valid."
+          fi
+      - name: Tag
+        run: git tag ${{ inputs.tag }} && git push origin ${{ inputs.tag }}
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ inputs.tag }}
+          release_name: ${{ inputs.tag }}
+          body: Verion ${{ inputs.tag }} is created and ready for PROD release.
+          draft: false
+          prerelease: false

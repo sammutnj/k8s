@@ -1,0 +1,26 @@
+name: Check Change Request
+description: Ensure prod env deployment has CHG number input
+
+inputs:
+  env:
+    description: Environment
+    type: string
+    required: true
+  chg_number:
+    description: Change request number
+    type: string
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate
+      if: ${{ inputs.env == 'prod' }}
+      shell: bash
+      run: |
+        if [[ "${{ inputs.chg_number }}" == CHG* ]]; then
+          echo "CHG is: ${{ inputs.chg_number }}"
+        else
+          echo "Invalid CHG number. Ensure it starts with 'CHG'."
+          exit 1
+        fi

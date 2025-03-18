@@ -1,0 +1,20 @@
+name: vault
+description: Vault secrets access
+
+inputs:
+  secrets:
+    description: secret paths
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Get Secrets
+      uses: hashicorp/vault-action@v3
+      with:
+        method: jwt
+        path: jwt_github-repository
+        url: https://secrets.vault.cba
+        role: default
+        secrets: ${{ inputs.secrets }}

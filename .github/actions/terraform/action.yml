@@ -1,0 +1,71 @@
+name: terraform
+description: AWS infra deployment with Terraform
+
+inputs:
+  s3_bucket:
+    description: S3 state bucket
+    required: true
+  s3_key:
+    description: S3 state key
+    required: true
+  working_dir:
+    description: folder in the repo containing terraform codebase
+    required: true
+  is_destroy:
+    description: trigger terraform destroy or not
+    default: false
+  is_dry_run:
+    description: Dry-run only?
+    default: true
+  git_version:
+    description: "Github repo version used to deploy infra. Ex: 2.0.0, 1.1.0, main"
+    default: ${{ github.ref_name }}
+  chg_number:
+    description: CHG number
+    default: N/A
+
+runs:
+  using: composite
+  steps:
+    - name: Check version
+      run: terraform version
+      shell: bash
+    - name: Init
+      run: terraform init -backend-config='bucket=${{ inputs.s3_bucket }}' -backend-config='key=${{ inputs.s3_key }}'
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      env:
+        TF_VAR_git_version: ${{ inputs.git_version }}
+        TF_VAR_chg_number: ${{ inputs.chg_number }}
+    - name: Lint
+      run: terraform fmt -check
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+    - name: Validate
+      run: terraform validate
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      env:
+        TF_VAR_git_version: ${{ inputs.git_version }}
+        TF_VAR_chg_number: ${{ inputs.chg_number }}
+    - name: Plan
+      run: terraform plan -out tfplan
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      if: inputs.is_destroy == 'false'
+      env:
+        TF_VAR_git_version: ${{ inputs.git_version }}
+        TF_VAR_chg_number: ${{ inputs.chg_number }}
+    - name: Destroy plan
+      run: terraform plan -out tfplan -destroy
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      if: inputs.is_destroy == 'true'
+      env:
+        TF_VAR_git_version: ${{ inputs.git_version }}
+        TF_VAR_chg_number: ${{ inputs.chg_number }}
+    - name: Apply
+      run: terraform apply tfplan
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      if: inputs.is_dry_run == 'false'

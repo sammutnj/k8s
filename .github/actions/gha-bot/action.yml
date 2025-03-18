@@ -1,0 +1,12 @@
+name: gha-bot
+description: Git config for GitHub Actions bot
+
+runs:
+  using: composite
+  steps:
+    - name: Config username
+      run: git config --global user.name "github-actions[bot]"
+      shell: bash
+    - name: Config email
+      run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      shell: bash

@@ -1,0 +1,31 @@
+name: aws-auth
+description: AWS IAM role assumption
+
+inputs:
+  aws_account_id:
+    description: aws account id
+    default: 843960079237
+  aws_region:
+    description: aws region
+    default: ap-southeast-2
+  trust_role_name:
+    default: GHA-TrustRole
+  cicd_role_name:
+    default: GHA-CICD
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS credentials (AssumeRoleWithWebIdentity)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.trust_role_name }}"
+        role-session-name: "GitHubActions"
+        aws-region: ${{ inputs.aws_region }}
+    - name: Configure AWS credentials (AssumeRole)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.cicd_role_name }}"
+        role-session-name: "GitHubActions"
+        aws-region: ${{ inputs.aws_region }}
+        role-chaining: true
