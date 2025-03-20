@@ -20,9 +20,6 @@ inputs:
   git_version:
     description: "Github repo version used to deploy infra. Ex: 2.0.0, 1.1.0, main"
     default: ${{ github.ref_name }}
-  chg_number:
-    description: CHG number
-    default: N/A
 
 runs:
   using: composite

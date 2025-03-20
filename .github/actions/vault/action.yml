@@ -15,6 +15,6 @@ runs:
       with:
         method: jwt
         path: jwt_github-repository
-        url: https://secrets.vault.cba
+        url: https://portal.cloud.hashicorp.com/
         role: default
         secrets: ${{ inputs.secrets }}
