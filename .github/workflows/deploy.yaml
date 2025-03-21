@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,8 +22,6 @@ jobs:
           unzip awscliv2.zip
           sudo ./aws/install --update
       
-      
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
