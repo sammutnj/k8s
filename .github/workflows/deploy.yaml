@@ -28,7 +28,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
-
+      
+      - name: Debug Terraform Path
+        run: |
+            echo "Checking Terraform path..."
+            ls -lah /usr/local/bin/terraform || echo "Terraform path not found"
+            file /usr/local/bin/terraform || echo "Unable to determine file type"
+            df -h /usr/local/bin/terraform || echo "Unable to determine mount info"
+            lsattr -d /usr/local/bin/terraform || echo "Unable to determine attributes"
+        
       - name: Install Terraform
         run: |
             sudo apt-get update && sudo apt-get install -y unzip
@@ -51,7 +59,6 @@ jobs:
             sudo mv terraform /usr/local/bin/
             ls -lah /usr/local/bin/terraform  # Verify installation
             terraform --version
-        
 
       - name: Initialize Terraform
         run: |
