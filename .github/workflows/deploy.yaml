@@ -29,13 +29,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Install Terraform
-        run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-          unzip terraform_1.5.0_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/
-          terraform --version
+#      - name: Install Terraform
+#        run: |
+#          sudo apt-get update && sudo apt-get install -y unzip
+#          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+#          unzip terraform_1.5.0_linux_amd64.zip
+#          sudo mv terraform /usr/local/bin/
+#          terraform --version
 
       - name: Initialize Terraform
         run: |
