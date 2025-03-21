@@ -29,28 +29,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Install Terraform
+      - name: Force Remove Existing Terraform
         run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-          
-          # If terraform exists and is a directory, remove it
-          if [ -d "/usr/local/bin/terraform" ]; then
-            echo "Removing existing Terraform directory..."
+            sudo chattr -i /usr/local/bin/terraform || echo "Skipping immutable flag removal"
             sudo rm -rf /usr/local/bin/terraform
-          fi
-
-          # If terraform exists as a file, remove it
-          if [ -f "/usr/local/bin/terraform" ]; then
-            echo "Removing existing Terraform binary..."
-            sudo rm -f /usr/local/bin/terraform
-          fi
-
-          # Extract and install Terraform
-          unzip -o terraform_1.5.0_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/
-          ls -lah /usr/local/bin/terraform  # Verify installation
-          terraform --version  # Verify installation
+        
 
 
       - name: Initialize Terraform
