@@ -29,9 +29,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Check for mounted directories
+      - name: Force delete directory using find
         run: |
-            mount | grep /usr/local/bin || echo "No mount found for /usr/local/bin"
+            sudo find /usr/local/bin -type d -name terraform -exec rm -rf {} \; || echo "Failed to delete directory"
+            ls -lah /usr/local/bin || echo "Checking if directory was removed"
         
 
       - name: Install Terraform to Alternative Path
