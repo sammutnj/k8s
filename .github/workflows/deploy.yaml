@@ -31,23 +31,33 @@ jobs:
 
       - name: Download Terraform
         run: |
-          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-          ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
-          file terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP is missing"
-
-      - name: Extract Terraform
-        run: |
-          unzip -f terraform_1.5.0_linux_amd64.zip
-          ls -lah terraform || echo "Terraform binary not extracted"
-          file terraform || echo "Terraform binary missing"
-          
-      - name: Move Terraform to /usr/local/bin/
-        run: |
-          sudo mv -f terraform /usr/local/bin/
-          sudo chmod +x /usr/local/bin/terraform
-          ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+            curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+            ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
+            file terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP is missing"
         
-   
+      - name: Extract Terraform and Verify
+        run: |
+            unzip -o terraform_1.5.0_linux_amd64.zip
+            ls -lah || echo "No Terraform binary found in current directory"
+            file terraform || echo "Terraform binary missing"
+        
+      - name: Move Terraform Correctly
+        run: |
+            sudo mv -f ./terraform /usr/local/bin/
+            sudo chmod +x /usr/local/bin/terraform
+            ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+        
+      - name: Force Update PATH
+        run: |
+            echo "export PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+            echo "/usr/local/bin" >> $GITHUB_PATH
+            source $GITHUB_ENV
+        
+            echo "Current PATH: $PATH"
+            which terraform || echo "Terraform binary not found in PATH"
+            terraform --version || echo "Terraform still not working"
+        
+          
       - name: Initialize Terraform
         run: |
           cd terraform
