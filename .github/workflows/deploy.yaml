@@ -29,18 +29,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Reinstall Terraform
+      - name: Debug Terraform Installation
         run: |
             curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+            ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
             unzip -f terraform_1.5.0_linux_amd64.zip
-            sudo mv terraform /usr/local/bin/
-            sudo chmod +x /usr/local/bin/terraform
-            ls -lah /usr/local/bin/terraform
-            terraform --version
+            ls -lah terraform || echo "Terraform binary not found"
         
-        
-        
-
       - name: Initialize Terraform
         run: |
           cd terraform
