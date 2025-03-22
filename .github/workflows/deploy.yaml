@@ -49,7 +49,7 @@ jobs:
         run: |
             mkdir -p $HOME/bin
             curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-            unzip -o terraform_1.5.0_linux_amd64.zip
+            unzip -f terraform_1.5.0_linux_amd64.zip
             mv terraform $HOME/bin/
             chmod +x $HOME/bin/terraform
             echo "$HOME/bin" >> $GITHUB_PATH
