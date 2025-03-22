@@ -36,12 +36,16 @@ jobs:
             unzip -f terraform_1.5.0_linux_amd64.zip
             ls -lah terraform || echo "Terraform binary not found"
         
-      - name: Install Terraform
-        run: |
-              sudo mv terraform /usr/local/bin/ || echo "Failed to move Terraform"
-              sudo chmod +x /usr/local/bin/terraform
-              ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
-              ls -lah /usr/local/bin | grep terraform || echo "Terraform not found in /usr/local/bin"
+      - name: Install Terraform in Home Directory (Fallback)
+        if: failure()  # Runs only if previous steps fail
+          run: |
+                mkdir -p $HOME/bin
+                curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+                unzip -f terraform_1.5.0_linux_amd64.zip
+                mv terraform $HOME/bin/
+                chmod +x $HOME/bin/terraform
+                echo "$HOME/bin" >> $GITHUB_PATH
+                terraform --version
           
         
       - name: Add Terraform to PATH
@@ -50,18 +54,6 @@ jobs:
             source $GITHUB_ENV
             terraform --version || echo "Terraform still not found"
         
-      - name: Install Terraform in Home Directory (Fallback)
-        if: failure()  # Runs only if previous steps fail
-        run: |
-            mkdir -p $HOME/bin
-            curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-            unzip -f terraform_1.5.0_linux_amd64.zip
-            mv terraform $HOME/bin/
-            chmod +x $HOME/bin/terraform
-            echo "$HOME/bin" >> $GITHUB_PATH
-            terraform --version
-        
-
       - name: Initialize Terraform
         run: |
           cd terraform
