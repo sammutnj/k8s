@@ -29,32 +29,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Check if Terraform Exists
+      - name: Download Terraform
         run: |
-            echo "Checking in /usr/local/bin/"
-            ls -lah /usr/local/bin/terraform || echo "Terraform NOT found in /usr/local/bin/"
-            
-            echo "Checking in $HOME/bin/"
-            ls -lah $HOME/bin/terraform || echo "Terraform NOT found in $HOME/bin/"
-            
-            echo "Checking in default system path..."
-            which terraform || echo "Terraform binary not found"
+          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+          ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
+          file terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP is missing"
 
+      - name: Extract Terraform
+        run: |
+          unzip -f terraform_1.5.0_linux_amd64.zip
+          ls -lah terraform || echo "Terraform binary not extracted"
+          file terraform || echo "Terraform binary missing"
+          
       - name: Move Terraform to /usr/local/bin/
         run: |
-            sudo mv terraform /usr/local/bin/
-            sudo chmod +x /usr/local/bin/terraform
-            ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
-
-      - name: Force Update PATH
-        run: |
-            echo "export PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
-            echo "/usr/local/bin" >> $GITHUB_PATH
-            source $GITHUB_ENV
-
-            echo "Current PATH: $PATH"
-            which terraform || echo "Terraform binary still not found in PATH"
-            terraform --version || echo "Terraform still not found"
+          sudo mv -f terraform /usr/local/bin/
+          sudo chmod +x /usr/local/bin/terraform
+          ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+        
    
       - name: Initialize Terraform
         run: |
