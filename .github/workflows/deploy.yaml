@@ -29,34 +29,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
           
-      - name: Debug Terraform Installation
+      - name: Verify Terraform Download
         run: |
-            ls -lah /usr/local/bin/terraform || echo "Terraform not found in /usr/local/bin"
-            file /usr/local/bin/terraform || echo "Terraform file not recognized"
-            which terraform || echo "Terraform binary not found in PATH"
+            ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
+            file terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP file is missing"
         
-      - name: Ensure Terraform is in PATH
+      - name: Verify Terraform Extraction
+        run: |
+            ls -lah terraform || echo "Terraform binary not extracted"
+            file terraform || echo "Terraform binary file missing"
+        
+      - name: Move Terraform to /usr/local/bin/
+        run: |
+            sudo mv terraform /usr/local/bin/
+            sudo chmod +x /usr/local/bin/terraform
+            ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+        
+      - name: Force Update PATH
         run: |
             echo "export PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
             echo "/usr/local/bin" >> $GITHUB_PATH
             source $GITHUB_ENV
             echo "Current PATH: $PATH"
-            which terraform || echo "Terraform binary not found in PATH"
-            terraform --version || echo "Terraform still not found"
+            which terraform || echo "Terraform binary still not found in PATH"
         
       - name: Install Terraform in Home Directory (Fallback)
         if: failure()
         run: |
             mkdir -p $HOME/bin
-            curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-            unzip -f terraform_1.5.0_linux_amd64.zip
             mv terraform $HOME/bin/
             chmod +x $HOME/bin/terraform
             echo "$HOME/bin" >> $GITHUB_PATH
             source $GITHUB_ENV
-            echo "Current PATH: $PATH"
-            which terraform || echo "Terraform binary not found in PATH"
+            which terraform || echo "Terraform binary still not found in PATH"
             terraform --version || echo "Terraform still not found"
+        
         
         
       - name: Initialize Terraform
