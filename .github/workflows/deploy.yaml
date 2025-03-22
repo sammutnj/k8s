@@ -37,7 +37,7 @@ jobs:
         
       - name: Extract Terraform and Verify
         run: |
-            unzip -o terraform_1.5.0_linux_amd64.zip
+            unzip -f terraform_1.5.0_linux_amd64.zip
             ls -lah || echo "No Terraform binary found in current directory"
             file terraform || echo "Terraform binary missing"
         
