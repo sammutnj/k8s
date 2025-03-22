@@ -38,9 +38,11 @@ jobs:
         
       - name: Install Terraform
         run: |
-            sudo mv terraform /usr/local/bin/ || echo "Failed to move Terraform"
-            sudo chmod +x /usr/local/bin/terraform
-            ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+              sudo mv terraform /usr/local/bin/ || echo "Failed to move Terraform"
+              sudo chmod +x /usr/local/bin/terraform
+              ls -lah /usr/local/bin/terraform || echo "Terraform still missing after move"
+              ls -lah /usr/local/bin | grep terraform || echo "Terraform not found in /usr/local/bin"
+          
         
       - name: Add Terraform to PATH
         run: |
