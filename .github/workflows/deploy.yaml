@@ -33,9 +33,21 @@ jobs:
         run: |
             curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
             ls -lah terraform_1.5.0_linux_amd64.zip || echo "Terraform ZIP not found"
-            unzip -f terraform_1.5.0_linux_amd64.zip
+            unzip -o terraform_1.5.0_linux_amd64.zip
             ls -lah terraform || echo "Terraform binary not found"
-        
+
+      - name: Install Terraform
+        run: |
+              sudo mv terraform /usr/local/bin/ || echo "Failed to move Terraform"
+              sudo chmod +x /usr/local/bin/terraform
+              ls -lah /usr/local/bin/terraform
+
+      - name: Add Terraform to PATH
+        run: |
+                echo "export PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+                source $GITHUB_ENV
+                terraform --version || echo "Terraform still not found"
+
       - name: Initialize Terraform
         run: |
           cd terraform
