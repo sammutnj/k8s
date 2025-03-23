@@ -19,6 +19,6 @@ resource "aws_eks_cluster" "k8s_cluster" {
   role_arn = aws_iam_role.eks_role.arn
 
   vpc_config {
-    subnet_ids = ["subnet-xxxx", "subnet-yyyy"] # Replace with actual subnet IDs
+    subnet_ids = ["subnet-077c56108854be58b", "subnet-077c56108854be58b"]
   }
 }
