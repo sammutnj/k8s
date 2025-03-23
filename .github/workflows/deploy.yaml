@@ -45,7 +45,7 @@ jobs:
           terraform apply -auto-approve
         continue-on-error: true
 
-    - name: Terraform Destroy on Failure
+      - name: Terraform Destroy on Failure
         if: always() && steps.apply.outcome != 'success'
         run: terraform destroy -auto-approve
 
