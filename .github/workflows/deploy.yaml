@@ -60,7 +60,7 @@ jobs:
       - name: Setup kubectl
         if: steps.apply.outcome == 'success'
         run: |
-          aws eks update-kubeconfig --region ap-southeast-2 --name sammut-cluster
+          aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
           kubectl get nodes
 
       - name: Install Helm
