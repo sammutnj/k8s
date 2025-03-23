@@ -22,3 +22,5 @@ resource "aws_eks_cluster" "k8s_cluster" {
     subnet_ids = ["subnet-077c56108854be58b", "subnet-0750c0ee6baff8f23"]
   }
 }
+
+## jggg
