@@ -96,7 +96,7 @@ jobs:
         run: |
           cd terraform-state
           ls -lah  # Check the downloaded files
-          unzip -o *.zip -d ../terraform  # Extract ZIP to the terraform directory
+          tar -xzf terraform-state.tar.gz -C ../terraform  # Extract to terraform directory
           echo "Terraform state restored."
 
       - name: Initialize Terraform
