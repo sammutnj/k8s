@@ -2,8 +2,13 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
+# Fetch the pre-existing IAM role
+data "aws_iam_role" "existing_role" {
+  name = "GHA-CICD"  # Replace with your actual IAM role name
+}
+
 resource "aws_iam_role" "eks_role" {
-  name = "eks-cluster-role"
+  name = "GHA-CICD"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
