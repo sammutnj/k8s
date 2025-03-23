@@ -42,6 +42,7 @@ jobs:
         run: |
           cd terraform
           terraform apply -auto-approve
+        continue-on-error: true
 
       - name: Terraform Destroy on Any Failure
         if: always() && (steps.apply.outcome == 'failure' || steps.apply.outcome == 'cancelled')
