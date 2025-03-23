@@ -44,7 +44,7 @@ jobs:
         run: |
           cd terraform
           terraform apply -auto-approve
-        continue-on-error: true  # Prevents job failure
+        continue-on-error: true
 
       - name: Save Terraform State
         if: always()
