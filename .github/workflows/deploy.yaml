@@ -71,7 +71,7 @@ jobs:
       - name: Deploy Nginx using Helm
         if: steps.apply.outcome == 'success'
         run: |
-          helm upgrade --install nginx-release ./nginx-chart
+          helm upgrade --install nginx-release helm/nginx-chart
 
   destroy:
     runs-on: ubuntu-latest
