@@ -13,26 +13,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: ~0.13.0
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install or Update AWS CLI
+      - name: Install AWS CLI
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
           sudo ./aws/install --update
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
-          
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ~0.13.0
+
       - name: Initialize Terraform
         run: |
           cd terraform
@@ -43,21 +44,62 @@ jobs:
         run: |
           cd terraform
           terraform apply -auto-approve
-        continue-on-error: true
+        continue-on-error: true  # Prevents job failure
 
-      - name: Terraform Destroy on Failure
-        if: always() && steps.apply.outcome != 'success'
-        run: terraform destroy -auto-approve
+      - name: Save Terraform State
+        if: always()
+        run: |
+          cd terraform
+          tar -czf terraform-state.tar.gz terraform.tfstate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terraform-state
+          path: terraform/terraform-state.tar.gz
 
       - name: Setup kubectl
+        if: steps.apply.outcome == 'success'
         run: |
           aws eks update-kubeconfig --region ap-southeast-2 --name sammut-cluster
           kubectl get nodes
 
       - name: Install Helm
+        if: steps.apply.outcome == 'success'
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
       - name: Deploy Nginx using Helm
+        if: steps.apply.outcome == 'success'
         run: |
           helm upgrade --install nginx-release ./nginx-chart
+
+  destroy:
+    runs-on: ubuntu-latest
+    needs: deploy  # Ensures this runs after deploy job
+    if: always()    # Runs even if apply fails
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ~0.13.0
+
+      - name: Download Terraform State
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-state
+      - run: |
+          cd terraform
+          tar -xzf terraform-state.tar.gz
+
+      - name: Initialize Terraform
+        run: |
+          cd terraform
+          terraform init
+
+      - name: Terraform Destroy
+        run: |
+          cd terraform
+          terraform destroy -auto-approve
