@@ -38,7 +38,8 @@ jobs:
           cd terraform
           terraform init
 
-      - name: Apply Terraform
+      - name: Terraform Apply
+        id: apply
         run: |
           cd terraform
           terraform apply -auto-approve
@@ -47,7 +48,6 @@ jobs:
       - name: Terraform Destroy on Failure
         if: always() && !success()
         run: terraform destroy -auto-approve
-        
 
       - name: Setup kubectl
         run: |
