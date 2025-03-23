@@ -5,7 +5,7 @@ resource "aws_eks_node_group" "worker_nodes" {
 
   scaling_config {
     desired_size = 1
-    max_size     = 2
+    max_size     = 3
     min_size     = 1
   }
 }
