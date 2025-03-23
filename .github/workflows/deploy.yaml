@@ -103,7 +103,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: terraform-state
-          path: terraform-state  # Store it in a separate directory
+          path: terraform-state
 
       - name: Extract Terraform State
         run: |
