@@ -74,7 +74,7 @@ jobs:
           helm upgrade --install nginx-release helm/nginx-chart
 
   destroy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest #
     needs: deploy
     if: always()
     steps:
