@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket         = "my-terraform-state-bucket"
+    bucket         = "sammut-bucket"
     key            = "eks/terraform.tfstate"
     region         = "ap-southeast-2"
     encrypt        = true
