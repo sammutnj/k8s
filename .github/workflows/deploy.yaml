@@ -75,3 +75,5 @@ jobs:
         if: steps.apply.outcome == 'success'
         run: |
           helm upgrade --install nginx-release helm/nginx-chart
+          kubectl get pods -n default
+          kubectl get services -n default
