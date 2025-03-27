@@ -1,24 +1,22 @@
-provider "aws" {
-  region = "us-east-1"
+terraform {
+  backend "s3" {
+    bucket         = "sammut-bucket"
+    key            = "eks/terraform.tfstate"
+    region         = "ap-southeast-2"
+    encrypt        = true
+  }
 }
 
-resource "aws_iam_role" "eks_role" {
-  name = "eks-cluster-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "eks.amazonaws.com" }
-      Action = "sts:AssumeRole"
-    }]
-  })
+provider "aws" {
+  region = "ap-southeast-2"
 }
 
 resource "aws_eks_cluster" "k8s_cluster" {
   name     = "my-k8s-cluster"
-  role_arn = aws_iam_role.eks_role.arn
+  role_arn = "arn:aws:iam::843960079237:role/GHA-CICD"  # Directly reference your IAM role ARN
 
   vpc_config {
-    subnet_ids = ["subnet-xxxx", "subnet-yyyy"] # Replace with actual subnet IDs
+    subnet_ids = ["subnet-077c56108854be58b", "subnet-0750c0ee6baff8f23"]
   }
+
 }

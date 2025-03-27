@@ -1,9 +1,11 @@
-name: Deploy to AWS EKS
+name: Deploy to AWS EKS #
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -14,42 +16,62 @@ jobs:
 
       - name: Install AWS CLI
         run: |
-          curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-          sudo installer -pkg AWSCLIV2.pkg -target /
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
-          role-to-assume: arn:aws:iam::843960079237:role/GHA-CICD
 
-      - name: Install Terraform
-        run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          curl -LO https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
-          unzip terraform_1.5.0_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/
-          terraform --version
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ~0.13.0
 
       - name: Initialize Terraform
         run: |
           cd terraform
           terraform init
 
-      - name: Apply Terraform
+      - name: Terraform Apply
+        id: apply
         run: |
           cd terraform
           terraform apply -auto-approve
+        continue-on-error: true
+
+
+
+      - name: Save Terraform State
+        run: |
+          cd terraform
+          tar -czf terraform-state.tar.gz terraform.tfstate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: terraform/terraform-state.tar.gz
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
 
       - name: Setup kubectl
+        if: steps.apply.outcome == 'success'
         run: |
-          aws eks update-kubeconfig --region ap-southeast-2 --name sammut-cluster
+          aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
           kubectl get nodes
 
       - name: Install Helm
+        if: steps.apply.outcome == 'success'
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
       - name: Deploy Nginx using Helm
+        if: steps.apply.outcome == 'success'
         run: |
-          helm upgrade --install nginx-release ./nginx-chart
+          helm upgrade --install nginx-release helm/nginx-chart
+          kubectl get pods -n default
+          kubectl get services -n default
