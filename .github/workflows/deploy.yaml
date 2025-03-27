@@ -1,9 +1,7 @@
 name: Deploy to AWS EKS #
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
 
 permissions:
   id-token: write
