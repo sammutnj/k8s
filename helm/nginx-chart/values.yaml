@@ -3,7 +3,7 @@ storage:
   size: 1Gi
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
-  storageClass: gp3  # AWS EBS storage class
+  storageClass: gp2  # AWS EBS storage class
   volumeID: vol-xxxxxxxx  # Replace with your actual EBS volume ID
   persistentVolumeReclaimPolicy: Delete
   fsType: ext4
