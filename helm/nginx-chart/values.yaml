@@ -1,8 +1,16 @@
-replicaCount: 1
-image:
-  repository: nginx
-  tag: latest
-  pullPolicy: IfNotPresent
-service:
-  type: LoadBalancer
-  port: 80
+storage:
+  enabled: true
+  size: 1Gi
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  storageClass: gp3  # AWS EBS storage class
+  volumeID: vol-xxxxxxxx  # Replace with your actual EBS volume ID
+  persistentVolumeReclaimPolicy: Delete
+  fsType: ext4
+  
+
+nginx:
+  replicas: 1
+  image: nginx:latest
+  containerPort: 80
+  mountPath: /usr/share/nginx/html

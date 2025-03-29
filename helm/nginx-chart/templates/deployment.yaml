@@ -1,11 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
-  labels:
-    app: nginx
+  name: nginx
 spec:
-  replicas: 2
+  replicas: {{ .Values.nginx.replicas }}
   selector:
     matchLabels:
       app: nginx
@@ -16,6 +14,13 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:latest
+          image: {{ .Values.nginx.image }}
           ports:
-            - containerPort: 80
+            - containerPort: {{ .Values.nginx.containerPort }}
+          volumeMounts:
+            - name: nginx-storage
+              mountPath: {{ .Values.nginx.mountPath }}
+      volumes:
+        - name: nginx-storage
+          persistentVolumeClaim:
+            claimName: nginx-pvc
