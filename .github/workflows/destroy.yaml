@@ -34,7 +34,7 @@ jobs:
 
       - name: Delete Kubernetes LoadBalancer Services
         run: |
-          aws eks update-kubeconfig --name my-k8s-cluster --region ap-southeast-2
+          aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
           kubectl delete svc --all --namespace default || true
 
       - name: Initialize Terraform
