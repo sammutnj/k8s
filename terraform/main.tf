@@ -21,18 +21,16 @@ resource "aws_eks_cluster" "k8s_cluster" {
   }
 }
 
-# ✅ Add this missing data source
+# ✅ EKS Authentication Data Source
 data "aws_eks_cluster_auth" "cluster" {
   name = aws_eks_cluster.k8s_cluster.name
 }
 
-# 🔹 Ensure EKS is Fully Created Before Running Helm
+# ✅ Fix: Just reference EKS attributes in provider (No depends_on needed)
 provider "kubernetes" {
   host                   = aws_eks_cluster.k8s_cluster.endpoint
   cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.cluster.token
-
-  depends_on = [aws_eks_cluster.k8s_cluster]
 }
 
 provider "helm" {
@@ -41,8 +39,6 @@ provider "helm" {
     cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
     token                  = data.aws_eks_cluster_auth.cluster.token
   }
-
-  depends_on = [aws_eks_cluster.k8s_cluster]
 }
 
 # 🔹 Deploy AWS EBS CSI Driver with Helm
@@ -66,6 +62,4 @@ resource "helm_release" "aws_ebs_csi_driver" {
     name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = "arn:aws:iam::843960079237:role/GHA-CICD"
   }
-
-  depends_on = [aws_eks_cluster.k8s_cluster]
 }
