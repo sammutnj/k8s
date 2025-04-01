@@ -55,9 +55,6 @@ jobs:
           name: terraform-state
           path: terraform/terraform-state.tar.gz
 
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
-
       - name: Setup kubectl
         if: steps.apply.outcome == 'success'
         run: |
@@ -75,3 +72,6 @@ jobs:
           helm upgrade --install nginx-release helm/nginx-chart
           kubectl get pods -n default
           kubectl get services -n default
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
