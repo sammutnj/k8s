@@ -80,7 +80,6 @@ provider "helm" {
   }
 }
 
-# 🔹 Deploy AWS EBS CSI Driver with Helm
 resource "helm_release" "aws_ebs_csi_driver" {
   name       = "aws-ebs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
@@ -98,8 +97,13 @@ resource "helm_release" "aws_ebs_csi_driver" {
   }
 
   set {
-  name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-  value = data.aws_iam_role.ebs_csi_driver.arn
+    name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = data.aws_iam_role.ebs_csi_driver.arn
   }
 
+  depends_on = [
+    aws_eks_cluster.k8s_cluster,
+    aws_iam_openid_connect_provider.eks
+  ]
 }
+
