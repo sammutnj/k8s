@@ -21,12 +21,13 @@ resource "aws_eks_cluster" "k8s_cluster" {
   }
 }
 
-data "aws_eks_cluster" "this" {
-  name = aws_eks_cluster.k8s_cluster.name
+locals {
+  cluster_oidc_issuer = aws_eks_cluster.k8s_cluster.identity[0].oidc[0].issuer
 }
 
+
 resource "aws_iam_openid_connect_provider" "eks" {
-  url             = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+  url             = local.cluster_oidc_issuer
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd2a84e"] # AWS OIDC thumbprint
 }
@@ -40,7 +41,7 @@ data "aws_iam_policy_document" "ebs_assume_role" {
     }
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      variable = "${replace(local.cluster_oidc_issuer, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
     }
   }
