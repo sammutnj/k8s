@@ -83,3 +83,15 @@ jobs:
         run: |
             kubectl get pods -n kube-system
             kubectl get svc -n kube-system
+
+      - name: Deploy NGINX using Helm
+        if: steps.apply.outcome == 'success'
+        run: |
+          helm upgrade --install nginx-release ./helm/nginx-chart \
+            --namespace default \
+            --create-namespace \
+            -f ./helm/nginx-chart/values.yaml
+
+          kubectl get pods -n default
+          kubectl get svc -n default
+
