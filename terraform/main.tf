@@ -11,7 +11,7 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-# 🔹 EKS Cluster
+# EKS Cluster
 resource "aws_eks_cluster" "k8s_cluster" {
   name     = "my-k8s-cluster"
   role_arn = "arn:aws:iam::843960079237:role/GHA-CICD"
@@ -24,7 +24,6 @@ resource "aws_eks_cluster" "k8s_cluster" {
 locals {
   cluster_oidc_issuer = aws_eks_cluster.k8s_cluster.identity[0].oidc[0].issuer
 }
-
 
 resource "aws_iam_openid_connect_provider" "eks" {
   url             = local.cluster_oidc_issuer
@@ -47,15 +46,12 @@ data "aws_iam_policy_document" "ebs_assume_role" {
   }
 }
 
+# Use existing IAM role
 data "aws_iam_role" "ebs_csi_driver" {
   name = "GHA-EBSCSIDRIVER"
 }
 
-resource "aws_iam_role" "ebs_csi_driver" {
-  name               = "AmazonEKS_EBS_CSI_DriverRole"
-  assume_role_policy = data.aws_iam_policy_document.ebs_assume_role.json
-}
-
+# Attach the EBS CSI policy to the existing role
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = data.aws_iam_role.ebs_csi_driver.name
