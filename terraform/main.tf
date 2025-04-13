@@ -82,8 +82,14 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
 
+    labels = {
+      "app.kubernetes.io/managed-by" = "Helm"
+    }
+
     annotations = {
-      "eks.amazonaws.com/role-arn" = data.aws_iam_role.ebs_csi_driver.arn
+      "eks.amazonaws.com/role-arn"                  = data.aws_iam_role.ebs_csi_driver.arn
+      "meta.helm.sh/release-name"                   = "aws-ebs-csi-driver"
+      "meta.helm.sh/release-namespace"              = "kube-system"
     }
   }
 }
