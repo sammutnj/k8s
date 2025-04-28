@@ -13,3 +13,6 @@ nginx:
   image: nginx:latest
   containerPort: 80
   mountPath: /usr/share/nginx/html
+
+service:
+  type: LoadBalancer  # Change to ClusterIP when needed

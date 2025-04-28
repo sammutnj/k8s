@@ -1,12 +1,32 @@
+  {{- if eq .Values.service.type "LoadBalancer" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: {{ include "nginx-chart" . }}-lb
+  labels:
+    app: {{ include "nginx-chart" . }}
 spec:
-  selector:
-    app: nginx
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: {{ .Values.nginx.containerPort }}
   type: LoadBalancer
+  selector:
+    {{- include "nginx-chart.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 80
+      targetPort: {{ .Values.nginx.containerPort }}
+      protocol: TCP
+{{- else if eq .Values.service.type "ClusterIP" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-chart" . }}-clusterip
+  labels:
+    app: {{ include "nginx-chart" . }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "nginx-chart.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+{{- end }}
+
