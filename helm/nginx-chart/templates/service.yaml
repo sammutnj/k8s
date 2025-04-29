@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nginx-chart" . }}-lb
+  name: {{ include "nginx-chart.fullname" . }}-lb
   labels:
-    app: {{ include "nginx-chart" . }}
+    app: {{ include "nginx-chart.fullname" . }}
 spec:
   type: LoadBalancer
   selector:
@@ -17,9 +17,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nginx-chart" . }}-clusterip
+  name: {{ include "nginx-chart.fullname" . }}-clusterip
   labels:
-    app: {{ include "nginx-chart" . }}
+    app: {{ include "nginx-chart.fullname" . }}
 spec:
   type: ClusterIP
   selector:
