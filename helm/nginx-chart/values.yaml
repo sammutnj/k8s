@@ -6,13 +6,20 @@ storage:
   storageClassName: gp2  # AWS EBS storage class
   persistentVolumeReclaimPolicy: Delete
   fsType: ext4
-  
+
+app: nginx
 
 nginx:
-  replicas: 1
+  replicas: 2
   image: nginx:latest
   containerPort: 80
   mountPath: /usr/share/nginx/html
 
 service:
   type: LoadBalancer  # Change to ClusterIP when needed
+
+ingress:
+  enabled: true
+  host: nginx.local
+
+

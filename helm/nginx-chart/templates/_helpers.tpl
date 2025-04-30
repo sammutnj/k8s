@@ -10,3 +10,7 @@
 app.kubernetes.io/name: {{ include "nginx-chart.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{- define "nginx-chart.selectorLabels" -}}
+app: {{ .Values.app }}
+{{- end }}
