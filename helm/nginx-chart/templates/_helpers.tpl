@@ -12,6 +12,3 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app: {{ .Values.app }}
 {{- end }}
 
-{{- define "nginx-chart.selectorLabels" -}}
-app: {{ .Values.app }}
-{{- end }}
