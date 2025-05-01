@@ -1,11 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nginx-pvc
+  name: {{ include "nginx-chart.fullname" . }}-pvc
 spec:
   accessModes:
-    - {{ .Values.storage.accessMode }}
+    - {{ .Values.storage.accessMode | quote }}
   resources:
     requests:
-      storage: {{ .Values.storage.size }}
-  storageClassName: {{ .Values.storage.storageClassName }}
+      storage: {{ .Values.storage.size | quote }}
+  {{- if .Values.storage.storageClassName }}
+  storageClassName: {{ .Values.storage.storageClassName | quote }}
+  {{- end }}

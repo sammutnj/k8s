@@ -12,6 +12,17 @@ spec:
       labels:
         {{- include "nginx-chart.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+        - name: init-copy-html
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp /src/index.html /usr/share/nginx/html/
+          volumeMounts:
+            - name: html-source
+              mountPath: /src
+            - name: nginx-storage
+              mountPath: /usr/share/nginx/html
       containers:
         - name: nginx
           image: {{ .Values.nginx.image }}
@@ -24,3 +35,6 @@ spec:
         - name: nginx-storage
           persistentVolumeClaim:
             claimName: nginx-pvc
+        - name: html-source
+          configMap:
+            name: nginx-html
