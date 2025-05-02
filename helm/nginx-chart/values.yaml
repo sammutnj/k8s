@@ -25,11 +25,12 @@ ingress:
 html:
   index: |
     <html>
-    <head><title>{{ .Release.Name }} - Welcome</title></head>
-    <body>
-      <h1>Deployed by Helm!</h1>
-    </body>
+      <head><title>{{ .Release.Name }} - Welcome</title></head>
+      <body>
+        <h1>Deployed by Helm!</h1>
+      </body>
     </html>
+
 
 
 
