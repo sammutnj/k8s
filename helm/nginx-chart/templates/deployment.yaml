@@ -34,7 +34,7 @@ spec:
       volumes:
         - name: nginx-storage
           persistentVolumeClaim:
-            claimName: nginx-pvc
+            claimName: {{ include "nginx-chart.fullname" . }}-pvc
         - name: html-source
           configMap:
             name: nginx-html
