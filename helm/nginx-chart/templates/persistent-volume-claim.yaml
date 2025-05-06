@@ -8,6 +8,6 @@ spec:
   resources:
     requests:
       storage: {{ .Values.storage.size | quote }}
-  {{- if .Values.storage.storageClassName }}
-  storageClassName: {{ .Values.storage.storageClassName | quote }}
-  {{- end }}
+{{- if .Values.storage.storageClassName }}
+{{- printf "storageClassName: %q" .Values.storage.storageClassName | nindent 2 }}
+{{- end }}
