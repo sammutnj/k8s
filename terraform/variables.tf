@@ -1,7 +1,6 @@
 variable "cluster_name" {
   default     = "my-k8s-cluster"
   description = "EKS cluster name"
-  type        = string
 }
 
 variable "namespace" {
