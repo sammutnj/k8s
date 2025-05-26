@@ -9,5 +9,6 @@ spec:
     requests:
       storage: {{ .Values.storage.size | quote }}
 {{- if .Values.storage.storageClassName }}
-{{- printf "storageClassName: %q" .Values.storage.storageClassName | nindent 2 }}
+  storageClassName: {{ .Values.storage.storageClassName | quote }}
 {{- end }}
+
