@@ -60,6 +60,53 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
+resource "kubernetes_service_account" "alb_ingress_controller" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_ingress_controller.arn
+    }
+  }
+}
+
+resource "helm_release" "alb_ingress_controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+
+  set {
+    name  = "clusterName"
+    value = aws_eks_cluster.k8s_cluster.name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = kubernetes_service_account.alb_ingress_controller.metadata[0].name
+  }
+
+  set {
+    name  = "region"
+    value = "ap-southeast-2"
+  }
+
+  set {
+    name  = "vpcId"
+    value = "vpc-0cd7460c7a84e9ed0"
+  }
+
+  depends_on = [
+    aws_eks_cluster.k8s_cluster,
+    kubernetes_service_account.alb_ingress_controller
+  ]
+}
+
 resource "aws_iam_openid_connect_provider" "eks" {
   url             = local.cluster_oidc_issuer
   client_id_list  = ["sts.amazonaws.com"]
