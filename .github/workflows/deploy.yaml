@@ -42,27 +42,30 @@ jobs:
         run: |
           cd terraform
           terraform apply -auto-approve
-        continue-on-error: true
 
-
+      - name: Wait for EKS Cluster to be Active
+        if: steps.apply.outcome == 'success'
+        run: |
+          echo "Waiting for EKS cluster to become active..."
+          aws eks wait cluster-active --name my-k8s-cluster --region ap-southeast-2
 
       - name: Save Terraform State
+        if: steps.apply.outcome == 'success'
         run: |
           cd terraform
           tar -czf terraform-state.tar.gz terraform.tfstate
+
       - uses: actions/upload-artifact@v4
+        if: steps.apply.outcome == 'success'
         with:
           name: terraform-state
           path: terraform/terraform-state.tar.gz
 
-      - name: Setup kubectl
+      - name: Update kubeconfig
         if: steps.apply.outcome == 'success'
         run: |
           aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
           kubectl get nodes
-
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
 
       - name: Install Helm
         if: steps.apply.outcome == 'success'
