@@ -102,7 +102,7 @@ resource "helm_release" "alb_ingress_controller" {
   }
 
   depends_on = [
-    aws_eks_cluster.k8s_cluster,
+    aws_iam_role_policy_attachment.alb_ingress_controller_attach,
     kubernetes_service_account.alb_ingress_controller
   ]
 }
