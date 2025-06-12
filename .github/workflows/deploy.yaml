@@ -101,6 +101,3 @@ jobs:
       - name: Update OIDC trust relationship
         run: ./scripts/update-oidc-trust.sh
 
-          kubectl get pods -n default
-          kubectl get svc -n default
-
