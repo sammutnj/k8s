@@ -1,6 +1,6 @@
 resource "aws_iam_policy" "alb_ingress_controller" {
   name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("${path.module}/alb-ingress-iam-policy.json")
+  policy = file("${path.module}/policies/alb-ingress-iam-policy.json")
 }
 
 resource "aws_iam_role" "alb_ingress_controller" {
