@@ -95,12 +95,12 @@ jobs:
             --create-namespace \
             -f ./helm/nginx-chart/values.yaml
 
-          kubectl get pods -n default
-          kubectl get svc -n default
-
       - name: Make script executable
         run: chmod +x scripts/update-oidc-trust.sh
 
       - name: Update OIDC trust relationship
         run: ./scripts/update-oidc-trust.sh
+
+          kubectl get pods -n default
+          kubectl get svc -n default
 
