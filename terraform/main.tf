@@ -39,27 +39,6 @@ locals {
   cluster_oidc_issuer = aws_eks_cluster.k8s_cluster.identity[0].oidc[0].issuer
 }
 
-resource "helm_release" "cert_manager" {
-  name       = "cert-manager"
-  repository = "https://charts.jetstack.io"
-  chart      = "cert-manager"
-  namespace  = "cert-manager"
-
-  create_namespace = true
-
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-
-  # Optional: specify version
-  # version = "v1.12.3"
-  
-  depends_on = [
-    aws_eks_cluster.k8s_cluster
-  ]
-}
-
 resource "helm_release" "alb_ingress_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
