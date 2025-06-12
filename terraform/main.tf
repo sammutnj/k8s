@@ -60,16 +60,6 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
-resource "kubernetes_service_account" "alb_ingress_controller" {
-  metadata {
-    name      = "aws-load-balancer-controller"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_ingress_controller.arn
-    }
-  }
-}
-
 resource "helm_release" "alb_ingress_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
