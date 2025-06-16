@@ -4,10 +4,10 @@ metadata:
   name: {{ include "nginx-chart.fullname" . }}-ingress
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
+    {{ $key | quote }}: {{ $value | quote }}
     {{- end }}
     {{- if .Values.ingress.certificateArn }}
-    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.certificateArn | quote }}
+    "alb.ingress.kubernetes.io/certificate-arn": {{ .Values.ingress.certificateArn | quote }}
     {{- end }}
 spec:
   rules:
