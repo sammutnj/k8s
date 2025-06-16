@@ -3,10 +3,9 @@ kind: Ingress
 metadata:
   name: {{ include "nginx-chart.fullname" . }}-ingress
   annotations:
-    alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.annotations.scheme | quote }}
-    alb.ingress.kubernetes.io/listen-ports: {{ .Values.ingress.annotations.listenPorts | quote }}
-    alb.ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.annotations.sslRedirect | quote }}
-    alb.ingress.kubernetes.io/target-type: {{ .Values.ingress.annotations.targetType | quote }}
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
     {{- if .Values.ingress.certificateArn }}
     alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.certificateArn | quote }}
     {{- end }}
