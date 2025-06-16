@@ -21,10 +21,10 @@ service:
 ingress:
   enabled: true
   host: myapp.example.com
+  certificateArn: arn:aws:acm:ap-southeast-2:123456789012:certificate/abcde1234-5678-90ab-cdef-de43
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-2:843960079237:certificate/f216adfa-7c29-4875-aa7e-c05e2f622031
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/target-type: ip
 
