@@ -20,12 +20,13 @@ service:
 
 ingress:
   enabled: true
-  host: nginx.local
+  host: myapp.example.com
   annotations:
-    kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-2:843960079237:certificate/f216adfa-7c29-4875-aa7e-c05e2f622031
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/target-type: ip
 
 html:
   index: |
