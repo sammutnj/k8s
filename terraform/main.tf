@@ -70,6 +70,12 @@ resource "helm_release" "alb_ingress_controller" {
     value = "vpc-0cd7460c7a84e9ed0"
   }
 
+  set {
+  name  = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/subnets"
+  value = "subnet-0750c0ee6baff8f23,subnet-077c56108854be58b"
+}
+
+
   depends_on = [
     aws_iam_role_policy_attachment.alb_ingress_controller_attach,
     kubernetes_service_account.alb_ingress_controller
