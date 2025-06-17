@@ -1,8 +1,6 @@
 name: Update OIDC Trust Relationship
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # Every day at 3am UTC
   workflow_dispatch:
 
 jobs:
