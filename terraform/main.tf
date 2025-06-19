@@ -80,7 +80,24 @@ data "aws_iam_policy_document" "alb_assume_role" {
 
 resource "aws_iam_policy" "alb_ingress_controller" {
   name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("${path.module}/alb-ingress-iam-policy.json")
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeVpcs",
+          "elasticloadbalancing:*",
+          "acm:*",
+          "iam:CreateServiceLinkedRole"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 # Kubernetes provider alias for Helm
