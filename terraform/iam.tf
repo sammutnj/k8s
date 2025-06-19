@@ -1,8 +1,3 @@
-resource "aws_iam_policy" "alb_ingress_controller" {
-  name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("${path.module}/policies/alb-ingress-iam-policy.json")
-}
-
 resource "aws_iam_role" "alb_ingress_controller" {
   name = "AmazonEKS_ALB_Ingress_Controller"
 
@@ -23,11 +18,6 @@ resource "aws_iam_role" "alb_ingress_controller" {
       }
     ]
   })
-}
-
-resource "aws_iam_role_policy_attachment" "alb_ingress_controller_attach" {
-  policy_arn = aws_iam_policy.alb_ingress_controller.arn
-  role       = aws_iam_role.alb_ingress_controller.name
 }
 
 resource "kubernetes_service_account" "alb_ingress_controller" {
