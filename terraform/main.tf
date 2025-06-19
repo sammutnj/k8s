@@ -5,6 +5,21 @@ terraform {
     region = "ap-southeast-2"
     encrypt = true
   }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
+  }
 }
 
 provider "aws" {
@@ -39,11 +54,88 @@ locals {
   cluster_oidc_issuer = aws_eks_cluster.k8s_cluster.identity[0].oidc[0].issuer
 }
 
+# OIDC Provider
+resource "aws_iam_openid_connect_provider" "eks" {
+  url             = local.cluster_oidc_issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd2a84e"]
+}
+
+# ALB Controller IAM role & policy
+data "aws_iam_policy_document" "alb_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(local.cluster_oidc_issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "alb_ingress_controller" {
+  name   = "AWSLoadBalancerControllerIAMPolicy"
+  policy = file("${path.module}/alb-ingress-iam-policy.json")
+}
+
+resource "aws_iam_role" "alb_ingress_controller" {
+  name               = "AmazonEKS_ALB_Ingress_Controller"
+  assume_role_policy = data.aws_iam_policy_document.alb_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "alb_ingress_controller_attach" {
+  policy_arn = aws_iam_policy.alb_ingress_controller.arn
+  role       = aws_iam_role.alb_ingress_controller.name
+}
+
+# Kubernetes provider alias for Helm
+data "aws_eks_cluster_auth" "cluster" {
+  name = aws_eks_cluster.k8s_cluster.name
+}
+
+provider "kubernetes" {
+  alias                  = "eks"
+  host                   = aws_eks_cluster.k8s_cluster.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = aws_eks_cluster.k8s_cluster.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
+
+# ALB Controller Service Account
+resource "kubernetes_service_account" "alb_ingress_controller" {
+  provider = kubernetes.eks
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_ingress_controller.arn
+    }
+  }
+}
+
+# ALB Helm Release
 resource "helm_release" "alb_ingress_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
+
+  providers = {
+    kubernetes = kubernetes.eks
+  }
 
   set {
     name  = "clusterName"
@@ -71,23 +163,18 @@ resource "helm_release" "alb_ingress_controller" {
   }
 
   set {
-  name  = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/subnets"
-  value = "subnet-0750c0ee6baff8f23,subnet-077c56108854be58b"
-}
-
+    name  = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/subnets"
+    value = "subnet-0750c0ee6baff8f23,subnet-077c56108854be58b"
+  }
 
   depends_on = [
+    aws_eks_cluster.k8s_cluster,
     aws_iam_role_policy_attachment.alb_ingress_controller_attach,
     kubernetes_service_account.alb_ingress_controller
   ]
 }
 
-resource "aws_iam_openid_connect_provider" "eks" {
-  url             = local.cluster_oidc_issuer
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd2a84e"]
-}
-
+# EBS CSI Driver Role
 data "aws_iam_policy_document" "ebs_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -95,6 +182,7 @@ data "aws_iam_policy_document" "ebs_assume_role" {
       type        = "Federated"
       identifiers = [aws_iam_openid_connect_provider.eks.arn]
     }
+
     condition {
       test     = "StringEquals"
       variable = "${replace(local.cluster_oidc_issuer, "https://", "")}:sub"
@@ -112,25 +200,9 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy" {
   role       = data.aws_iam_role.ebs_csi_driver.name
 }
 
-data "aws_eks_cluster_auth" "cluster" {
-  name = aws_eks_cluster.k8s_cluster.name
-}
-
-provider "kubernetes" {
-  host                   = aws_eks_cluster.k8s_cluster.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = aws_eks_cluster.k8s_cluster.endpoint
-    cluster_ca_certificate = base64decode(aws_eks_cluster.k8s_cluster.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.cluster.token
-  }
-}
-
 resource "kubernetes_service_account" "ebs_csi_controller" {
+  provider = kubernetes.eks
+
   metadata {
     name      = var.service_account_name
     namespace = var.namespace
@@ -152,6 +224,10 @@ resource "helm_release" "aws_ebs_csi_driver" {
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
   chart      = "aws-ebs-csi-driver"
   namespace  = var.namespace
+
+  providers = {
+    kubernetes = kubernetes.eks
+  }
 
   set {
     name  = "controller.serviceAccount.create"
