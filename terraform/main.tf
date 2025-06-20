@@ -73,6 +73,11 @@ data "aws_iam_policy_document" "alb_assume_role" {
   }
 }
 
+resource "aws_iam_role" "alb_ingress_controller" {
+  name               = "alb-ingress-controller-role"
+  assume_role_policy = data.aws_iam_policy_document.alb_assume_role.json
+}
+
 resource "aws_iam_policy" "alb_ingress_controller" {
   name = "AWSLoadBalancerControllerIAMPolicy"
   policy = jsonencode({
@@ -182,9 +187,15 @@ data "aws_iam_policy_document" "ebs_assume_role" {
       type        = "Federated"
       identifiers = [aws_iam_openid_connect_provider.eks.arn]
     }
+
     condition {
       test     = "StringEquals"
-      variable = "${replace(local.cluster)}
+      variable = "${replace(local.cluster_oidc_issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:${var.namespace}:${var.service_account_name}"]
     }
   }
+}
+
+output "oidc_provider_url" {
+  value = local.cluster_oidc_issuer
 }
