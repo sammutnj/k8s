@@ -168,7 +168,7 @@ resource "helm_release" "alb_ingress_controller" {
     value = "vpc-0cd7460c7a84e9ed0"
   }
 
-  set {
+  set_string {
     name  = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/subnets"
     value = "subnet-0750c0ee6baff8f23,subnet-077c56108854be58b"
   }
