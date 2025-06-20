@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket = "sammut-bucket"
-    key    = "eks/terraform.tfstate"
-    region = "ap-southeast-2"
+    bucket  = "sammut-bucket"
+    key     = "eks/terraform.tfstate"
+    region  = "ap-southeast-2"
     encrypt = true
   }
 
@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "alb_assume_role" {
 }
 
 resource "aws_iam_policy" "alb_ingress_controller" {
-  name   = "AWSLoadBalancerControllerIAMPolicy"
+  name = "AWSLoadBalancerControllerIAMPolicy"
 
   policy = jsonencode({
     Version = "2012-10-17",
