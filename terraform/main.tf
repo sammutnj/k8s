@@ -73,11 +73,6 @@ data "aws_iam_policy_document" "alb_assume_role" {
   }
 }
 
-resource "aws_iam_role" "alb_ingress_controller" {
-  name               = "AmazonEKS_ALB_Ingress_Controller"
-  assume_role_policy = data.aws_iam_policy_document.alb_assume_role.json
-}
-
 resource "aws_iam_policy" "alb_ingress_controller" {
   name = "AWSLoadBalancerControllerIAMPolicy"
   policy = jsonencode({
@@ -189,4 +184,7 @@ data "aws_iam_policy_document" "ebs_assume_role" {
     }
     condition {
       test     = "StringEquals"
-      variable = "${replace(local.cluster
+      variable = "${replace(local.cluster)}
+    }
+  }
+}
