@@ -1,0 +1,104 @@
+name: Deploy EKS Cluster & Nodes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
+  TF_VAR_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+  TF_VAR_DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+  TF_VAR_TF_VERSION: ${{ env.TF_VERSION }}
+  TF_VAR_HELM_VERSION: ${{ env.HELM_VERSION }}
+  TF_VAR_ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
+  TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+  TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+  TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+  TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+  TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
+  TF_VAR_VPC_ID: ${{ env.VPC_ID }}
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+        TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
+        TF_VAR_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+        TF_VAR_DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        TF_VAR_TF_VERSION: ${{ env.TF_VERSION }}
+        TF_VAR_HELM_VERSION: ${{ env.HELM_VERSION }}
+        TF_VAR_ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
+        TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+        TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+        TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+        TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
+        TF_VAR_VPC_ID: ${{ env.VPC_ID }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+        role-session-name: github-actions-session
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Init
+      run: terraform init -upgrade
+      working-directory: terraform/eks-cluster
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: terraform/eks-cluster
+
+    - name: Terraform Plan
+      run: |
+        terraform plan \
+          -var="cluster_name=${{ secrets.CLUSTER_NAME }}" \
+          -var="domain_name=${{ secrets.DOMAIN_NAME }}" \
+          -out=tfplan
+      working-directory: terraform/eks-cluster
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
+      working-directory: terraform/eks-cluster
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Configure kubeconfig
+      run: |
+        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
+          --name ${{ env.CLUSTER_NAME }} \
+          --alias ${{ env.CLUSTER_NAME }}
+
+    - name: Deploy Helm Chart
+      run: |
+        helm dependency update ./helm/nginx
+        helm upgrade --install nginx ./helm/nginx \
+          --namespace default \
+          --create-namespace \
+          --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=$(terraform output -raw acm_certificate_arn) \
+          --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
+          --atomic \
+          --timeout 10m
+      working-directory: terraform/eks-cluster

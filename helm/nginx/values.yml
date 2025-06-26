@@ -1,0 +1,71 @@
+# NGINX Deployment
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.25.3" # Latest stable
+  pullPolicy: IfNotPresent
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/certificate-arn: ""
+    alb.ingress.kubernetes.io/ssl-policy: "ELBSecurityPolicy-TLS13-1-2-2021-06"
+    alb.ingress.kubernetes.io/load-balancer-attributes: "routing.http.drop_invalid_header_fields.enabled=true"
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Persistence Configuration
+persistence:
+  enabled: true
+  storageClass: "gp3" # Using latest gp3 storage class
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# ConfigMap Configuration
+configMap:
+  enabled: true
+  html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Welcome to NGINX on EKS</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h1 { color: #2c3e50; }
+        </style>
+    </head>
+    <body>
+        <h1>Success! NGINX is running on EKS with TLS</h1>
+        <p>Deployed with Terraform v1.5+ and Helm v3.12+</p>
+    </body>
+    </html>
+
+# Resource limits
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+# Pod security context
+securityContext:
+  fsGroup: 101 # NGINX user group
+  runAsUser: 101 # NGINX user

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-html-content
+data:
+  index.html: |
+    {{ .Values.configMap.html | indent 4 }}

@@ -1,106 +1,102 @@
-name: Deploy to AWS EKS
+name: EKS NGINX Deployment with Existing Resources
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
+env:
+  AWS_REGION: us-west-2
+  CLUSTER_NAME: nginx-cluster
+  DOMAIN_NAME: yourdomain.com  # Must match ACM certificate
+  EXISTING_ACM_CERT_ARN: "arn:aws:acm:us-west-2:123456789012:certificate/your-cert-id"
+  EXISTING_IAM_ROLE_ARN: "arn:aws:iam::123456789012:role/your-role-name"
+  TF_VERSION: "1.5.7"
+  HELM_VERSION: "3.12.3"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    # Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
+    # Configure AWS credentials using existing IAM role
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: ${{ env.EXISTING_IAM_ROLE_ARN }}
+        role-session-name: github-actions-eks-deploy
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-southeast-2
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.6.6
+    # Initialize Terraform
+    - name: Terraform Init
+      run: terraform init -input=false -upgrade
+      working-directory: ./terraform
 
-      - name: Initialize Terraform
-        run: |
-          cd terraform
-          terraform init
+    # Terraform Plan with existing resources
+    - name: Terraform Plan
+      run: |
+        terraform plan \
+          -var="cluster_name=${{ env.CLUSTER_NAME }}" \
+          -var="domain_name=${{ env.DOMAIN_NAME }}" \
+          -var="acm_certificate_arn=${{ env.EXISTING_ACM_CERT_ARN }}" \
+          -var="create_acm_certificate=false" \
+          -out=tfplan
+      working-directory: ./terraform
 
-      - name: Terraform Apply
-        id: terraform_apply
-        run: |
-          cd terraform
-          terraform apply -auto-approve
+    # Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -input=false -auto-approve tfplan
+      working-directory: ./terraform
 
-      - name: Wait for EKS Cluster to Become Active
-        if: steps.terraform_apply.outcome == 'success'
-        run: |
-          echo "Waiting for EKS cluster to become active..."
-          aws eks wait cluster-active --name my-k8s-cluster --region ap-southeast-2
+    # Install Kubernetes tools
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: latest
 
-      - name: Save Terraform State
-        if: steps.terraform_apply.outcome == 'success'
-        run: |
-          cd terraform
-          tar -czf terraform-state.tar.gz terraform.tfstate
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
 
-      - name: Upload Terraform State Artifact
-        if: steps.terraform_apply.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-state
-          path: terraform/terraform-state.tar.gz
+    # Configure kubeconfig
+    - name: Configure kubeconfig
+      run: |
+        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
+          --name ${{ env.CLUSTER_NAME }} \
+          --alias eks-cluster
 
-      - name: Update Kubeconfig
-        if: steps.terraform_apply.outcome == 'success'
-        run: |
-          aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
-          kubectl get nodes
+    # Helm deployment with existing ACM cert
+    - name: Deploy NGINX Helm chart
+      run: |
+        helm dependency update ./helm/nginx
+        helm upgrade --install nginx ./helm/nginx \
+          --namespace default \
+          --create-namespace \
+          --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=${{ env.EXISTING_ACM_CERT_ARN }} \
+          --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
+          --atomic \
+          --timeout 10m \
+          --wait
+      working-directory: ./terraform
 
-      - name: Install Helm CLI
-        if: steps.terraform_apply.outcome == 'success'
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          helm version
-
-      - name: Deploy AWS EBS CSI Driver
-        run: |
-          helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-          helm repo update
-          helm upgrade --install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
-            --namespace kube-system \
-            --set controller.serviceAccount.create=true \
-            --set controller.serviceAccount.name=ebs-csi-controller-sa \
-            --set controller.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::843960079237:role/GHA-EBSCSIDRIVER
-
-      - name: Verify EBS CSI Driver Deployment
-        run: |
-          kubectl get pods -n kube-system
-          kubectl get svc -n kube-system
-
-      - name: Deploy NGINX via Helm
-        if: steps.terraform_apply.outcome == 'success'
-        run: |
-          helm upgrade --install nginx-release ./helm/nginx-chart \
-            --namespace default \
-            --create-namespace \
-            -f ./helm/nginx-chart/values.yaml
-          kubectl get ingress -n default
-
-      - name: Make OIDC Trust Script Executable
-        run: chmod +x scripts/update-oidc-trust.sh
-
-      - name: Update IAM Role OIDC Trust Policy
-        run: ./scripts/update-oidc-trust.sh
+    # Verification steps
+    - name: Verify deployment
+      run: |
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=nginx --timeout=300s
+        kubectl get ingress nginx
+        echo "Deployment verification complete"
