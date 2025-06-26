@@ -3,10 +3,6 @@ name: Deploy EKS Cluster & Nodes
 on:
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
   TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
   TF_VAR_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
@@ -21,6 +17,10 @@ env:
   TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
   TF_VAR_VPC_ID: ${{ env.VPC_ID }}
 
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
