@@ -50,66 +50,73 @@ jobs:
         TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
         TF_VAR_PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
         TF_VAR_VPC_ID: ${{ secrets.VPC_ID }}
+        
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: ${{ env.AWS_REGION }}
-        role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
-        role-session-name: github-actions-session
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ~0.13.0
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
 
-    - name: Terraform Init
-      run: terraform init -upgrade
-      working-directory: terraform/eks-cluster
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-southeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: Terraform Validate
-      run: terraform validate
-      working-directory: terraform/eks-cluster
+      - name: Terraform Init
+        run: terraform init -upgrade
+        working-directory: terraform/eks-cluster
 
-    - name: Terraform Plan
-      run: |
-        terraform plan \
-          -var="cluster_name=${{ secrets.CLUSTER_NAME }}" \
-          -var="domain_name=${{ secrets.DOMAIN_NAME }}" \
-          -out=tfplan
-      working-directory: terraform/eks-cluster
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/eks-cluster
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan
-      working-directory: terraform/eks-cluster
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -var="cluster_name=${{ secrets.CLUSTER_NAME }}" \
+            -var="domain_name=${{ secrets.DOMAIN_NAME }}" \
+            -out=tfplan
+        working-directory: terraform/eks-cluster
 
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'latest'
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: terraform/eks-cluster
 
-    - name: Install Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: ${{ env.HELM_VERSION }}
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
 
-    - name: Configure kubeconfig
-      run: |
-        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
-          --name ${{ env.CLUSTER_NAME }} \
-          --alias ${{ env.CLUSTER_NAME }}
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
 
-    - name: Deploy Helm Chart
-      run: |
-        helm dependency update ./helm/nginx
-        helm upgrade --install nginx ./helm/nginx \
-          --namespace default \
-          --create-namespace \
-          --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=$(terraform output -raw acm_certificate_arn) \
-          --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
-          --atomic \
-          --timeout 10m
-      working-directory: terraform/eks-cluster
+      - name: Configure kubeconfig
+        run: |
+          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
+            --name ${{ env.CLUSTER_NAME }} \
+            --alias ${{ env.CLUSTER_NAME }}
+
+      - name: Deploy Helm Chart
+        run: |
+          helm dependency update ./helm/nginx
+          helm upgrade --install nginx ./helm/nginx \
+            --namespace default \
+            --create-namespace \
+            --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=$(terraform output -raw acm_certificate_arn) \
+            --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
+            --atomic \
+            --timeout 10m
+        working-directory: terraform/eks-cluster
