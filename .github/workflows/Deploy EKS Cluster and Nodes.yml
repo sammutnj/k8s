@@ -2,20 +2,33 @@ name: Deploy EKS Cluster & Nodes
 
 on:
   workflow_dispatch:
+    inputs:
+      AWS_REGION:
+        description: 'AWS Region'
+        required: true
+        default: 'ap-southeast-2'
+      TF_VERSION:
+        description: 'Terraform Version'
+        required: true
+        default: '1.7.5'
+      HELM_VERSION:
+        description: 'Helm Version'
+        required: true
+        default: 'v3.14.4'
 
-env:
-  AWS_REGION: ${{ env.AWS_REGION }}
+env: 
+  AWS_REGION: ${{ inputs.AWS_REGION }}
   CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
   DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-  TF_VERSION: ${{ env.TF_VERSION }}
-  HELM_VERSION: ${{ env.HELM_VERSION }}
-  ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
-  EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-  EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-  EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-  LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-  PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
-  VPC_ID: ${{ env.VPC_ID }}
+  TF_VERSION: ${{ inputs.TF_VERSION }}
+  HELM_VERSION: ${{ inputs.HELM_VERSION }}
+  ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+  EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
+  EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
+  EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
+  LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
+  PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
+  VPC_ID: ${{ secrets.VPC_ID }}
 
 
 permissions:
