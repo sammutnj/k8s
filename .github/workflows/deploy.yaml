@@ -1,8 +1,6 @@
 name: EKS NGINX Deployment with Existing Resources
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 env:
