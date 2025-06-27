@@ -16,21 +16,6 @@ on:
         required: true
         default: 'v3.14.4'
 
-env: 
-  AWS_REGION: ${{ inputs.AWS_REGION }}
-  CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
-  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-  TF_VERSION: ${{ inputs.TF_VERSION }}
-  HELM_VERSION: ${{ inputs.HELM_VERSION }}
-  ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-  EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
-  EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
-  EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
-  LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
-  PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
-  VPC_ID: ${{ secrets.VPC_ID }}
-
-
 permissions:
   id-token: write
   contents: read
@@ -40,18 +25,31 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-        TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        TF_VERSION: ${{ inputs.TF_VERSION }}
+        HELM_VERSION: ${{ inputs.HELM_VERSION }}
+        CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+        ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+        EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
+        EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
+        EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
+        PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
+        VPC_ID: ${{ secrets.VPC_ID }}
+
+        TF_VAR_AWS_REGION: ${{ inputs.AWS_REGION }}
         TF_VAR_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
         TF_VAR_DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-        TF_VAR_TF_VERSION: ${{ env.TF_VERSION }}
-        TF_VAR_HELM_VERSION: ${{ env.HELM_VERSION }}
-        TF_VAR_ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
-        TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-        TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-        TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-        TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-        TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
-        TF_VAR_VPC_ID: ${{ env.VPC_ID }}
+        TF_VAR_TF_VERSION: ${{ inputs.TF_VERSION }}
+        TF_VAR_HELM_VERSION: ${{ inputs.HELM_VERSION }}
+        TF_VAR_ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+        TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
+        TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
+        TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
+        TF_VAR_PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
+        TF_VAR_VPC_ID: ${{ secrets.VPC_ID }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
