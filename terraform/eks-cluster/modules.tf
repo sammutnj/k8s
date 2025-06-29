@@ -23,6 +23,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
+      node_group_name = "default-ng"
       desired_size = 2
       max_size     = 3
       min_size     = 1
@@ -35,40 +36,5 @@ module "eks" {
   tags = {
     Environment = var.environment
     Project     = var.project_name
-  }
-}
-
-# AWS Load Balancer Controller
-module "lb_controller" {
-  source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "~> 1.0"
-
-  cluster_name      = module.eks.cluster_name
-  cluster_endpoint  = module.eks.cluster_endpoint
-  cluster_version   = module.eks.cluster_version
-  oidc_provider_arn = module.eks.oidc_provider_arn
-
-  # Latest AWS Load Balancer Controller
-  eks_addons = {
-    aws-load-balancer-controller = {
-      most_recent = true
-    }
-  }
-}
-
-# EBS CSI Driver
-module "ebs_csi_driver" {
-  source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "~> 1.0"
-
-  cluster_name      = module.eks.cluster_name
-  cluster_endpoint  = module.eks.cluster_endpoint
-  cluster_version   = module.eks.cluster_version
-  oidc_provider_arn = module.eks.oidc_provider_arn
-
-  eks_addons = {
-    aws-ebs-csi-driver = {
-      most_recent = true
-    }
   }
 }
