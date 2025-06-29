@@ -10,7 +10,6 @@ module "eks" {
   subnet_ids = var.private_subnets
 
   enable_irsa              = true
-  enable_cluster_addons    = true
 
   cluster_addons = {
     aws-ebs-csi-driver = {
