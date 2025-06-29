@@ -1,17 +1,15 @@
-variable "region" {
-  description = "AWS region"
+variable "aws_region" {
+  description = "AWS Region"
   type        = string
-  default     = "us-west-2"
 }
 
 variable "cluster_name" {
-  description = "EKS cluster name"
+  description = "EKS Cluster name"
   type        = string
-  default     = "nginx-cluster"
 }
 
 variable "vpc_id" {
-  description = "VPC ID where EKS will be deployed"
+  description = "VPC ID for the EKS cluster"
   type        = string
 }
 
@@ -20,19 +18,14 @@ variable "private_subnets" {
   type        = list(string)
 }
 
-variable "domain_name" {
-  description = "Domain name for ACM certificate"
+variable "environment" {
+  description = "Environment label (e.g., dev, prod)"
   type        = string
+  default     = "dev"
 }
 
-variable "acm_certificate_arn" {
-  description = "ARN of existing ACM certificate"
+variable "project_name" {
+  description = "Project name for tagging"
   type        = string
-  default     = ""
-}
-
-variable "create_acm_certificate" {
-  description = "Whether to create a new ACM certificate"
-  type        = bool
-  default     = true
+  default     = "eks-platform"
 }
