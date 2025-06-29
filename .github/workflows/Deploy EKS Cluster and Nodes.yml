@@ -38,19 +38,6 @@ jobs:
         PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
         VPC_ID: ${{ secrets.VPC_ID }}
 
-        TF_VAR_AWS_REGION: ${{ inputs.AWS_REGION }}
-        TF_VAR_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
-        TF_VAR_DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-        TF_VAR_TF_VERSION: ${{ inputs.TF_VERSION }}
-        TF_VAR_HELM_VERSION: ${{ inputs.HELM_VERSION }}
-        TF_VAR_ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-        TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
-        TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
-        TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
-        TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
-        TF_VAR_PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
-        TF_VAR_VPC_ID: ${{ secrets.VPC_ID }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -84,6 +71,18 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
+          TF_VAR_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          TF_VAR_DOMAIN_NAME: ${{ env.DOMAIN_NAME }}
+          TF_VAR_ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
+          TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+          TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+          TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+          TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
+          TF_VAR_VPC_ID: ${{ env.VPC_ID }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
