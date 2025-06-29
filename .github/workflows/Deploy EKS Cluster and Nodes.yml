@@ -82,11 +82,7 @@ jobs:
         working-directory: terraform/eks-cluster
 
       - name: Terraform Plan
-        run: |
-          terraform plan \
-            -var="cluster_name=${{ secrets.CLUSTER_NAME }}" \
-            -var="domain_name=${{ secrets.DOMAIN_NAME }}" \
-            -out=tfplan
+        run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
 
       - name: Terraform Apply
