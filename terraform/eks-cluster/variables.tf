@@ -29,3 +29,9 @@ variable "project_name" {
   type        = string
   default     = "eks-platform"
 }
+
+variable "acm_certificate_arn" {
+  description = "acm_certificate_arn"
+  type        = string
+  default     = "arn:aws:acm:ap-southeast-2:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+}
