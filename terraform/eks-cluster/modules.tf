@@ -7,7 +7,7 @@ module "eks" {
   cluster_endpoint_public_access = true
 
   vpc_id     = var.vpc_id
-  subnet_ids = var.private_subnets
+  subnet_ids = var.subnet_ids
 
   enable_irsa              = true
 

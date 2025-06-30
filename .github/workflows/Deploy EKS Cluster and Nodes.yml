@@ -70,8 +70,9 @@ jobs:
 
       - name: Terraform Plan
         run: |
-          export TF_VAR_private_subnets=$(echo "${{ secrets.PRIVATE_SUBNETS }}" | jq -R 'split(",")')
+          export TF_VAR_subnet_ids=$(echo "${{ secrets.PRIVATE_SUBNETS }}" | jq -R 'split(",")')
           terraform plan -input=false -out=tfplan
+
         working-directory: terraform/eks-cluster
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
