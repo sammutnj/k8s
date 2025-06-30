@@ -72,17 +72,16 @@ jobs:
         run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
         env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
-          TF_VAR_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          TF_VAR_DOMAIN_NAME: ${{ env.DOMAIN_NAME }}
-          TF_VAR_ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
-          TF_VAR_EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-          TF_VAR_EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-          TF_VAR_LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_PRIVATE_SUBNETS: ${{ env.PRIVATE_SUBNETS }}
-          TF_VAR_VPC_ID: ${{ env.VPC_ID }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
+          TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
+          TF_VAR_vpc_id: ${{ env.VPC_ID }}
+          TF_VAR_private_subnets: ${{ env.PRIVATE_SUBNETS }}
+          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
+          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+          TF_VAR_eks_cluster_iam_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+          TF_VAR_eks_nodegroup_iam_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
