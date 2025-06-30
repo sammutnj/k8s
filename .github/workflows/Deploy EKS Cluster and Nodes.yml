@@ -69,14 +69,15 @@ jobs:
         working-directory: terraform/eks-cluster
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan
+        run: |
+          export TF_VAR_private_subnets=$(echo "${{ secrets.PRIVATE_SUBNETS }}" | jq -R 'split(",")')
+          terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
           TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
           TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
           TF_VAR_vpc_id: ${{ env.VPC_ID }}
-          TF_VAR_private_subnets: ${{ env.PRIVATE_SUBNETS }}
           TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
           TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
           TF_VAR_eks_cluster_iam_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
