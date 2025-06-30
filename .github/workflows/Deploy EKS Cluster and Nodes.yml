@@ -67,7 +67,9 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-
+      - name: Convert and export TF_VAR_subnet_ids
+        run: |
+          echo "SUBNET_IDS=$(echo '${{ secrets.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
       - name: Terraform Plan
         run: |
           export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
