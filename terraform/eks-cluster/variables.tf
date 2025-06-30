@@ -13,8 +13,8 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "private_subnets" {
-  description = "List of private subnet IDs"
+variable "subnet_ids" {
+  description = "List of private subnet IDs for the EKS cluster"
   type        = list(string)
 }
 
