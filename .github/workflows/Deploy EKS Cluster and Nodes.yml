@@ -35,8 +35,8 @@ jobs:
         EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
         EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
         LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
-        PRIVATE_SUBNETS: ${{ secrets.PRIVATE_SUBNETS }}
         VPC_ID: ${{ secrets.VPC_ID }}
+        SUBNET_IDS: ${{ secrets.SUBNET_IDS }}
 
     steps:
       - name: Checkout repository
@@ -70,7 +70,7 @@ jobs:
 
       - name: Terraform Plan
         run: |
-          export TF_VAR_subnet_ids=$(echo "${{ secrets.PRIVATE_SUBNETS }}" | jq -R 'split(",")')
+          export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
           terraform plan -input=false -out=tfplan
 
         working-directory: terraform/eks-cluster
@@ -84,7 +84,7 @@ jobs:
           TF_VAR_eks_cluster_iam_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_eks_nodegroup_iam_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ secrets.PRIVATE_SUBNETS }}
+          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
