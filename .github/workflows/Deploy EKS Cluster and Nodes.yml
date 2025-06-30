@@ -84,6 +84,7 @@ jobs:
           TF_VAR_eks_cluster_iam_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_eks_nodegroup_iam_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+          TF_VAR_subnet_ids: ${{ secrets.PRIVATE_SUBNETS }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
