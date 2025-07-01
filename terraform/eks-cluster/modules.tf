@@ -11,6 +11,9 @@ module "eks" {
 
   enable_irsa = true
 
+  create_kms_key               = false
+  enable_cluster_encryption    = false
+
   cluster_addons = {
     aws-ebs-csi-driver = {
       resolve_conflicts = "OVERWRITE"
