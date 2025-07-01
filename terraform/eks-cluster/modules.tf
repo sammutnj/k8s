@@ -11,7 +11,7 @@ module "eks" {
 
   enable_irsa = true
 
-  create_kms_key               = false
+  create_kms_key = false
 
   cluster_addons = {
     aws-ebs-csi-driver = {
