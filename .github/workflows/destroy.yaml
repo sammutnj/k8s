@@ -32,10 +32,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Delete Kubernetes LoadBalancer Services
-        run: |
-          aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
-          kubectl delete svc --all --namespace default || true
+      # - name: Delete Kubernetes LoadBalancer Services
+      #   run: |
+      #     aws eks update-kubeconfig --region ap-southeast-2 --name my-k8s-cluster
+      #     kubectl delete svc --all --namespace default || true
 
       - name: Initialize Terraform
         run: |
