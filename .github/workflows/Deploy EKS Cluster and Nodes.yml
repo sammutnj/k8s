@@ -71,9 +71,9 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-      - name: Convert and export TF_VAR_subnet_ids
-        run: |
-          echo "SUBNET_IDS=$(echo '${{ secrets.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
+      # - name: Convert and export TF_VAR_subnet_ids
+      #   run: |
+      #     echo "SUBNET_IDS=$(echo '${{ secrets.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
       - name:  Show cluster name from environment
         run: |
           echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
@@ -106,7 +106,7 @@ jobs:
               -var="aws_region=${{ env.AWS_REGION }}" \
               -var="cluster_name=${{ env.CLUSTER_NAME }}" \
               -var="vpc_id=${{ env.VPC_ID }}" \
-              -var="subnet_ids=${{ env.PRIVATE_SUBNETS }}" \
+              -var="subnet_ids=${{ env.SUBNET_IDS }}" \
               -out=tfplan
             terraform apply -auto-approve tfplan
           fi
