@@ -18,7 +18,7 @@ on:
       DESTROY:
         description: 'Set to true to destroy the infrastructure'
         required: false
-        default: 'true'
+        default: 'false'
 
 permissions:
   id-token: write
@@ -95,9 +95,23 @@ jobs:
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
           TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+      - name: Terraform Plan or Destroy
+        run: |
+          if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
+            echo "Destroy mode active"
+            terraform destroy -auto-approve
+          else
+            echo "Plan + Apply mode active"
+            terraform plan \
+              -var="aws_region=${{ env.AWS_REGION }}" \
+              -var="cluster_name=${{ env.CLUSTER_NAME }}" \
+              -var="vpc_id=${{ env.VPC_ID }}" \
+              -var="subnet_ids=${{ env.PRIVATE_SUBNETS }}" \
+              -out=tfplan
+            terraform apply -auto-approve tfplan
+          fi
         working-directory: terraform/eks-cluster
+
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
