@@ -111,6 +111,17 @@ jobs:
             terraform apply -auto-approve tfplan
           fi
         working-directory: terraform/eks-cluster
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
+          TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
+          TF_VAR_vpc_id: ${{ env.VPC_ID }}
+          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
+          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+          TF_VAR_eks_cluster_iam_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+          TF_VAR_eks_nodegroup_iam_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
 
 
       - name: Install kubectl
