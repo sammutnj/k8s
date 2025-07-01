@@ -15,6 +15,10 @@ on:
         description: 'Helm Version'
         required: true
         default: 'v3.14.4'
+      DESTROY:
+        description: 'Set to true to destroy the infrastructure'
+        required: false
+        default: 'true'
 
 permissions:
   id-token: write
