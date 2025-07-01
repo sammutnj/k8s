@@ -70,6 +70,10 @@ jobs:
       - name: Convert and export TF_VAR_subnet_ids
         run: |
           echo "SUBNET_IDS=$(echo '${{ secrets.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
+      - name:  Show cluster name from environment
+        run: |
+          echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
+          echo "TF_VAR_CLUSTER_NAME = '${TF_VAR_CLUSTER_NAME}'"
       - name: Terraform Plan
         run: |
           export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
