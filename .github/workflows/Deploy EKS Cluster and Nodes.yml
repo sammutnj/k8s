@@ -74,7 +74,6 @@ jobs:
         run: |
           export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
           terraform plan -input=false -out=tfplan
-
         working-directory: terraform/eks-cluster
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
