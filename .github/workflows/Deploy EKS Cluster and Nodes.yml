@@ -70,21 +70,11 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-      - name: Export TF_VAR_subnet_ids properly
+      - name: Export TF_VAR_subnet_ids directly
         run: |
-          echo "TF_VAR_subnet_ids=$(echo '${{ env.SUBNET_IDS }}' | jq -c .)" >> $GITHUB_ENV
-      - name:  Show cluster name from environment
-        run: |
-          echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
-          echo "TF_VAR_CLUSTER_NAME = '${TF_VAR_CLUSTER_NAME}'"
-      - name: Debug nodegroup_role_arn
-        run: |
-          echo "TF_VAR_nodegroup_role_arn=${{ env.TF_VAR_nodegroup_role_arn }}"
-          echo "Raw secret value: '${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}'"
+          echo "TF_VAR_subnet_ids=${{ secrets.SUBNET_IDS }}" >> $GITHUB_ENV
       - name: Terraform Plan
-        run: |
-          export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
-          terraform plan -input=false -out=tfplan
+        run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
