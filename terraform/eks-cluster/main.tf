@@ -32,13 +32,13 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access = true
   }
 
-  # Use AWS managed encryption (no customer CMK)
-  encryption_config {
-    resources = ["secrets"]
-    provider {
-      key_arn = null
-    }
-  }
+  # # Use AWS managed encryption (no customer CMK)
+  # encryption_config {
+  #   resources = ["secrets"]
+  #   provider {
+  #     key_arn = null
+  #   }
+  # }
 
   depends_on = [] # add if you need to order (e.g., IAM roles)
 }
