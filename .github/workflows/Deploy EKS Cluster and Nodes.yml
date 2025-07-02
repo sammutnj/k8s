@@ -34,13 +34,13 @@ jobs:
         HELM_VERSION: ${{ inputs.HELM_VERSION }}
         CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
         DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-        EBS_CSI_IAM_ROLE_ARN: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
-        EKS_CLUSTER_IAM_ROLE_ARN: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
-        EKS_NODEGROUP_IAM_ROLE_ARN: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
-        LB_CONTROLLER_IAM_ROLE_ARN: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
-        VPC_ID: ${{ secrets.VPC_ID }}
-        SUBNET_IDS: ${{ secrets.SUBNET_IDS }}
-        ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+        EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+        EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+        EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+        VPC_ID: ${{ env.VPC_ID }}
+        SUBNET_IDS: ${{ env.SUBNET_IDS }}
+        ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
 
     steps:
       - name: Checkout repository
@@ -49,7 +49,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ inputs.TF_VERSION }}
 
       - name: Install AWS CLI
         run: |
@@ -73,7 +73,7 @@ jobs:
         working-directory: terraform/eks-cluster
       - name: Convert and export TF_VAR_subnet_ids
         run: |
-          echo "SUBNET_IDS=$(echo '${{ secrets.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
+          echo "SUBNET_IDS=$(echo '${{ env.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
       - name:  Show cluster name from environment
         run: |
           echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
@@ -81,7 +81,7 @@ jobs:
       - name: Debug nodegroup_role_arn
         run: |
           echo "TF_VAR_nodegroup_role_arn=${{ env.TF_VAR_nodegroup_role_arn }}"
-          echo "Raw secret value: '${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}'"
+          echo "Raw secret value: '${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}'"
       - name: Terraform Plan
         run: |
           export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
@@ -91,13 +91,13 @@ jobs:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
           TF_VAR_cluster_name: ${{ secrets.CLUSTER_NAME }}
           TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
-          TF_VAR_vpc_id: ${{ secrets.VPC_ID }}
-          TF_VAR_acm_certificate_arn: ${{ secrets.ACM_CERTIFICATE_ARN }}
-          TF_VAR_ebs_csi_iam_role_arn: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
-          TF_VAR_eks_cluster_role_arn: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_nodegroup_role_arn: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
-          TF_VAR_lb_controller_iam_role_arn: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ secrets.SUBNET_IDS }}
+          TF_VAR_vpc_id: ${{ env.VPC_ID }}
+          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
+          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+          TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
       - name: Terraform Plan or Destroy
         run: |
           if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
