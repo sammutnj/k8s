@@ -97,8 +97,6 @@ jobs:
               -var="aws_region=${{ env.AWS_REGION }}" \
               -var="cluster_name=${{ env.CLUSTER_NAME }}" \
               -var="vpc_id=${{ env.VPC_ID }}" \
-              # -var="subnet_ida=${{ env.SUBNET_IDA }}" \
-              # -var="subnet_idb=${{ env.SUBNET_IDB }}" \
               -out=tfplan
             terraform apply -auto-approve tfplan
           fi
