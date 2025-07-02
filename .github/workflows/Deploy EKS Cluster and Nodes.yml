@@ -78,6 +78,10 @@ jobs:
         run: |
           echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
           echo "TF_VAR_CLUSTER_NAME = '${TF_VAR_CLUSTER_NAME}'"
+      - name: Debug nodegroup_role_arn
+        run: |
+          echo "TF_VAR_nodegroup_role_arn=${{ env.TF_VAR_nodegroup_role_arn }}"
+          echo "Raw secret value: '${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}'"
       - name: Terraform Plan
         run: |
           export TF_VAR_subnet_ids=$(echo "${{ env.SUBNET_IDS }}" | jq -R 'split(",")')
