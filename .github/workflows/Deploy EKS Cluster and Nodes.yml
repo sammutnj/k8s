@@ -91,7 +91,7 @@ jobs:
           TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
           TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_eks_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
           TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
 
@@ -119,7 +119,7 @@ jobs:
           TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
           TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_eks_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
           TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
 
