@@ -41,8 +41,6 @@ jobs:
       VPC_ID: ${{ vars.VPC_ID }}
       SUBNET_IDS: ${{ vars.SUBNET_IDS }}
       ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
-
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,9 +70,9 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-      - name: Convert and export TF_VAR_subnet_ids
+      - name: Export TF_VAR_subnet_ids properly
         run: |
-          echo "SUBNET_IDS=$(echo '${{ env.SUBNET_IDS }}' | jq -R 'split(",")')" >> $GITHUB_ENV
+          echo "TF_VAR_subnet_ids=$(echo '${{ env.SUBNET_IDS }}' | jq -c .)" >> $GITHUB_ENV
       - name:  Show cluster name from environment
         run: |
           echo "CLUSTER_NAME = '${CLUSTER_NAME}'"
