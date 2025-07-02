@@ -13,15 +13,15 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "subnet_ida" {
-  description = "List of private subnet IDs for the EKS cluster"
-  type        = string
-}
+# variable "subnet_ida" {
+#   description = "List of private subnet IDs for the EKS cluster"
+#   type        = string
+# }
 
-variable "subnet_idb" {
-  description = "List of private subnet IDs for the EKS cluster"
-  type        = string
-}
+# variable "subnet_idb" {
+#   description = "List of private subnet IDs for the EKS cluster"
+#   type        = string
+# }
 
 variable "environment" {
   description = "Environment label (e.g., dev, prod)"
