@@ -70,9 +70,6 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-      - name: Export TF_VAR_subnet_ids directly
-        run: |
-          echo "TF_VAR_subnet_ids=${{ secrets.SUBNET_IDS }}" >> $GITHUB_ENV
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
@@ -86,7 +83,7 @@ jobs:
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
+          TF_VAR_subnet_ids: ${{ fromJSON(env.SUBNET_IDS) }}
       - name: Terraform Plan or Destroy
         run: |
           if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
@@ -113,7 +110,7 @@ jobs:
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
+          TF_VAR_subnet_ids: ${{ fromJSON(env.SUBNET_IDS) }}
 
 
       - name: Install kubectl
