@@ -39,7 +39,8 @@ jobs:
       EKS_NODEGROUP_IAM_ROLE_ARN: ${{ vars.EKS_NODEGROUP_IAM_ROLE_ARN }}
       LB_CONTROLLER_IAM_ROLE_ARN: ${{ vars.LB_CONTROLLER_IAM_ROLE_ARN }}
       VPC_ID: ${{ vars.VPC_ID }}
-      SUBNET_IDS: ${{ vars.SUBNET_IDS }}
+      SUBNET_IDA: ${{ vars.SUBNET_IDA }}
+      SUBNET_IDB: ${{ vars.SUBNET_IDB }}
       ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
     steps:
       - name: Checkout repository
@@ -70,9 +71,6 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: terraform/eks-cluster
-      - name: Convert SUBNET_IDS to TF_VAR_subnet_ids
-        run: |
-          echo "TF_VAR_subnet_ids=$(echo '${{ env.SUBNET_IDS }}' | jq -c .)" >> $GITHUB_ENV
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
         working-directory: terraform/eks-cluster
@@ -86,7 +84,8 @@ jobs:
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ env.TF_VAR_subnet_ids }}
+          TF_VAR_subnet_ida: ${{ env.SUBNET_IDA }}
+          TF_VAR_subnet_idb: ${{ env.SUBNET_IDB }}
       - name: Terraform Plan or Destroy
         run: |
           if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
@@ -98,7 +97,8 @@ jobs:
               -var="aws_region=${{ env.AWS_REGION }}" \
               -var="cluster_name=${{ env.CLUSTER_NAME }}" \
               -var="vpc_id=${{ env.VPC_ID }}" \
-              -var="subnet_ids=${{ env.SUBNET_IDS }}" \
+              -var="subnet_ida=${{ env.SUBNET_IDA }}" \
+              -var="subnet_idb=${{ env.SUBNET_IDB }}" \
               -out=tfplan
             terraform apply -auto-approve tfplan
           fi
@@ -113,7 +113,8 @@ jobs:
           TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
           TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
           TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ env.TF_VAR_subnet_ids }}
+          TF_VAR_subnet_ida: ${{ env.SUBNET_IDA }}
+          TF_VAR_subnet_idb: ${{ env.SUBNET_IDB }}
 
 
       - name: Install kubectl
