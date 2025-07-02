@@ -89,16 +89,15 @@ jobs:
         working-directory: terraform/eks-cluster
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
-          TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
-          TF_VAR_vpc_id: ${{ env.VPC_ID }}
-          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
-          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-          TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-          TF_VAR_subnet_ids: ${{ env.SUBNET_IDS }}
-
+          TF_VAR_cluster_name: ${{ secrets.CLUSTER_NAME }}
+          TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+          TF_VAR_vpc_id: ${{ secrets.VPC_ID }}
+          TF_VAR_acm_certificate_arn: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          TF_VAR_ebs_csi_iam_role_arn: ${{ secrets.EBS_CSI_IAM_ROLE_ARN }}
+          TF_VAR_eks_cluster_role_arn: ${{ secrets.EKS_CLUSTER_IAM_ROLE_ARN }}
+          TF_VAR_nodegroup_role_arn: ${{ secrets.EKS_NODEGROUP_IAM_ROLE_ARN }}
+          TF_VAR_lb_controller_iam_role_arn: ${{ secrets.LB_CONTROLLER_IAM_ROLE_ARN }}
+          TF_VAR_subnet_ids: ${{ secrets.SUBNET_IDS }}
       - name: Terraform Plan or Destroy
         run: |
           if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
