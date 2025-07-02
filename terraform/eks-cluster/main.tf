@@ -28,7 +28,7 @@ resource "aws_eks_cluster" "this" {
   version = "1.28"
 
   vpc_config {
-    subnet_ids = var.subnet_ids
+    subnet_ids             = var.subnet_ids
     endpoint_public_access = true
   }
 
@@ -40,7 +40,7 @@ resource "aws_eks_cluster" "this" {
     }
   }
 
-  depends_on = []  # add if you need to order (e.g., IAM roles)
+  depends_on = [] # add if you need to order (e.g., IAM roles)
 }
 
 # First managed node group
