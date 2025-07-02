@@ -28,7 +28,11 @@ resource "aws_eks_cluster" "this" {
   version = "1.28"
 
   vpc_config {
-    subnet_ids             = var.subnet_ida
+    subnet_ids = [
+    "subnet-0750c0ee6baff8f23",
+    "subnet-077c56108854be58b",
+    "subnet-00db2399fd000cac4"
+  ]
     endpoint_public_access = true
   }
 
@@ -48,7 +52,11 @@ resource "aws_eks_node_group" "group1" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-node-group-1"
   node_role_arn   = var.nodegroup_role_arn
-  subnet_ids      = var.subnet_ida
+  subnet_ids = [
+    "subnet-0750c0ee6baff8f23",
+    "subnet-077c56108854be58b",
+    "subnet-00db2399fd000cac4"
+  ]
 
   instance_types = ["t3.medium"]
 
@@ -74,7 +82,11 @@ resource "aws_eks_node_group" "group2" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-node-group-2"
   node_role_arn   = var.nodegroup_role_arn
-  subnet_ids      = var.subnet_idb
+  subnet_ids = [
+    "subnet-0750c0ee6baff8f23",
+    "subnet-077c56108854be58b",
+    "subnet-00db2399fd000cac4"
+  ]
 
   instance_types = ["t3.medium"]
 
