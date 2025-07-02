@@ -29,18 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: prod
     env:
-        AWS_REGION: ${{ inputs.AWS_REGION }}
-        TF_VERSION: ${{ inputs.TF_VERSION }}
-        HELM_VERSION: ${{ inputs.HELM_VERSION }}
-        CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
-        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-        EBS_CSI_IAM_ROLE_ARN: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-        EKS_CLUSTER_IAM_ROLE_ARN: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-        EKS_NODEGROUP_IAM_ROLE_ARN: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-        LB_CONTROLLER_IAM_ROLE_ARN: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
-        VPC_ID: ${{ env.VPC_ID }}
-        SUBNET_IDS: ${{ env.SUBNET_IDS }}
-        ACM_CERTIFICATE_ARN: ${{ env.ACM_CERTIFICATE_ARN }}
+      AWS_REGION: ${{ inputs.AWS_REGION }}
+      TF_VERSION: ${{ inputs.TF_VERSION }}
+      HELM_VERSION: ${{ inputs.HELM_VERSION }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+      EBS_CSI_IAM_ROLE_ARN: ${{ vars.EBS_CSI_IAM_ROLE_ARN }}
+      EKS_CLUSTER_IAM_ROLE_ARN: ${{ vars.EKS_CLUSTER_IAM_ROLE_ARN }}
+      EKS_NODEGROUP_IAM_ROLE_ARN: ${{ vars.EKS_NODEGROUP_IAM_ROLE_ARN }}
+      LB_CONTROLLER_IAM_ROLE_ARN: ${{ vars.LB_CONTROLLER_IAM_ROLE_ARN }}
+      VPC_ID: ${{ vars.VPC_ID }}
+      SUBNET_IDS: ${{ vars.SUBNET_IDS }}
+      ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
+
 
     steps:
       - name: Checkout repository
