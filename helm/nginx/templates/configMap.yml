@@ -1,7 +1,9 @@
+{{- if and .Values.configMap (hasKey .Values.configMap "html") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-html-content
 data:
-  index.html: |
+  index.html: |-
     {{ .Values.configMap.html | indent 4 }}
+{{- end }}
