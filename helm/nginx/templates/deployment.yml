@@ -13,28 +13,34 @@ spec:
         app: {{ .Release.Name }}
     spec:
       containers:
-      - name: nginx
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: html-volume
-          mountPath: /usr/share/nginx/html
-        - name: config-volume
-          mountPath: /usr/share/nginx/html/index.html
-          subPath: index.html
+        - name: nginx
+          {{- if and .Values.image .Values.image.repository }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          {{- else }}
+          image: "nginx:latest"
+          imagePullPolicy: "IfNotPresent"
+          {{- end }}
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html-volume
+              mountPath: /usr/share/nginx/html
+            - name: config-volume
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
       volumes:
-      - name: html-volume
-        {{- if .Values.persistence.enabled }}
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-pvc
-        {{- else }}
-        emptyDir: {}
-        {{- end }}
-      - name: config-volume
-        configMap:
-          name: {{ .Release.Name }}-html-content
-          items:
-          - key: index.html
-            path: index.html
+        - name: html-volume
+          {{- if and .Values.persistence (hasKey .Values.persistence "enabled") .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-html-content
+            items:
+              - key: index.html
+                path: index.html
+
