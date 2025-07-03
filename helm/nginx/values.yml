@@ -1,3 +1,6 @@
+persistence:
+  enabled: false
+  
 # NGINX Deployment
 replicaCount: 2
 
