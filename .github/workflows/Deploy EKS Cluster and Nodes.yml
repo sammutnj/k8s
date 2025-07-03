@@ -140,4 +140,4 @@ jobs:
             --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
             --atomic \
             --timeout 10m
-        working-directory: ./helm/nginx
+        working-directory: ${{ github.workspace }}
