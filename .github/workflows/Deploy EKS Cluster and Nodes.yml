@@ -128,7 +128,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: ${{ env.HELM_VERSION }}
+          version: 'latest'
       - name: Configure kubeconfig
         run: |
           aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
