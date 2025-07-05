@@ -136,6 +136,5 @@ jobs:
             --values ./helm/nginx/values.yaml \
             --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=${{ env.ACM_CERTIFICATE_ARN }} \
             --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
-            --atomic \
-            --timeout 20m
+            --timeout 5m
 
