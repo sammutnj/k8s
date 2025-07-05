@@ -116,19 +116,11 @@ jobs:
         with:
           version: 'latest'
 
-  helm:
-    needs: deploy
-    runs-on: ubuntu-latest
-    env:
-      CLUSTER_NAME: ${{ needs.terraform.outputs.cluster_name }}
-      AWS_REGION: ${{ needs.terraform.outputs.aws_region }}
-      DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
-      ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}  
-    steps:    
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: 'latest'
+          version: ${{ env.HELM_VERSION }}
+
       - name: Configure kubeconfig
         run: |
           aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
@@ -145,6 +137,5 @@ jobs:
             --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=${{ env.ACM_CERTIFICATE_ARN }} \
             --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
             --atomic \
-            --timeout 10m
-        working-directory: ./
+            --timeout 20m
 
