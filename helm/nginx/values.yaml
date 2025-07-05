@@ -36,7 +36,7 @@ ingress:
 # Persistence Configuration
 persistence:
   enabled: true
-  storageClass: "gp3" # Using latest gp3 storage class
+  storageClass: "gp2" # Using latest gp3 storage class
   accessMode: ReadWriteOnce
   size: 1Gi
 
