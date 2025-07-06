@@ -21,16 +21,25 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Dynamically configure the Kubernetes provider after the cluster is ready
+# EKS cluster auth token
+data "aws_eks_cluster_auth" "this" {
+  name = aws_eks_cluster.this.name
+}
+
+# Kubernetes provider config using EKS cluster data
 provider "kubernetes" {
   host                   = aws_eks_cluster.this.endpoint
   cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.this.token
 }
 
-# EKS cluster auth data source for token
-data "aws_eks_cluster_auth" "this" {
-  name = aws_eks_cluster.this.name
+# ✅ Helm provider configured the same way
+provider "helm" {
+  kubernetes {
+    host                   = aws_eks_cluster.this.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.this.token
+  }
 }
 
 resource "aws_eks_cluster" "this" {
@@ -92,7 +101,6 @@ resource "aws_eks_node_group" "group2" {
   }
 }
 
-# Kubernetes Service Account annotated with IAM Role
 resource "kubernetes_service_account" "ebs_csi_controller" {
   metadata {
     name      = "ebs-csi-controller-sa"
@@ -105,7 +113,6 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
   depends_on = [aws_eks_node_group.group1, aws_eks_node_group.group2]
 }
 
-# Helm chart to install EBS CSI Driver
 resource "helm_release" "ebs_csi_driver" {
   name             = "aws-ebs-csi-driver"
   repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
