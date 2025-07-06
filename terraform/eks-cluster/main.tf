@@ -39,7 +39,6 @@ provider "helm" {
   }
 }
 
-
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = var.eks_cluster_role_arn
