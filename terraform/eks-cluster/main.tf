@@ -112,22 +112,23 @@ resource "helm_release" "ebs_csi_driver" {
   namespace        = "kube-system"
   create_namespace = true
 
-  set {
-    name  = "controller.serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "controller.serviceAccount.name"
-    value = "ebs-csi-controller-sa"
-  }
-
-  set {
-    name  = "controller.extraVolumeTags.kubernetes\\.io/cluster/${var.cluster_name}"
-    value = "owned"
-  }
+  set = [
+    {
+      name  = "controller.serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "controller.serviceAccount.name"
+      value = "ebs-csi-controller-sa"
+    },
+    {
+      name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
+      value = "owned"
+    }
+  ]
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
+
 
 
