@@ -101,6 +101,18 @@ resource "aws_eks_node_group" "group2" {
   }
 }
 
+resource "kubernetes_service_account" "ebs_csi_controller" {
+  metadata {
+    name      = "ebs-csi-controller-sa"
+    namespace = "kube-system"
+
+    annotations = {
+      "eks.amazonaws.com/role-arn" = var.ebs_csi_iam_role_arn
+    }
+  }
+}
+
+
 resource "helm_release" "ebs_csi_driver" {
   name       = "aws-ebs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
@@ -122,4 +134,8 @@ resource "helm_release" "ebs_csi_driver" {
     name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
     value = "owned"
   }
+
+    depends_on = [
+    kubernetes_service_account.ebs_csi_controller
+    ]
 }
