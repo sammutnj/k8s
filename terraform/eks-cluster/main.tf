@@ -12,7 +12,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.11"
+      version = ">= 2.11.0"
     }
   }
 }
@@ -131,8 +131,12 @@ resource "helm_release" "ebs_csi_driver" {
   }
 
   set {
-    name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
-    value = "owned"
+    name  = "controller.extraVolumeTags"
+    value = <<EOT
+{
+  "kubernetes.io/cluster/${var.cluster_name}": "owned"
+}
+EOT
   }
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
