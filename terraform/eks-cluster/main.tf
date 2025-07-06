@@ -1,6 +1,4 @@
 terraform {
-  required_version = ">= 1.12.0"
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -8,11 +6,11 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
+      version = "~> 2.23.0"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.11.0"
+      version = ">= 2.13.0"
     }
   }
 }
@@ -116,7 +114,7 @@ resource "helm_release" "ebs_csi_driver" {
 
   set {
     name  = "controller.serviceAccount.create"
-    value = false
+    value = "false"
   }
 
   set {
@@ -125,13 +123,11 @@ resource "helm_release" "ebs_csi_driver" {
   }
 
   set {
-    name  = "controller.extraVolumeTags"
-    value = <<EOT
-{
-  "kubernetes.io/cluster/${var.cluster_name}": "owned"
-}
-EOT
+    name  = "controller.extraVolumeTags.kubernetes\\.io/cluster/${var.cluster_name}"
+    value = "owned"
   }
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
+
+
