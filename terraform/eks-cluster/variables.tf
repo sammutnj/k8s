@@ -43,3 +43,8 @@ variable "nodegroup_role_arn" {
   type = string
 }
 
+variable "ebs_csi_iam_role_arn" {
+  description = "IAM role ARN for EBS CSI Driver"
+  type        = string
+}
+
