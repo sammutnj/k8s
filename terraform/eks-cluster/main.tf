@@ -33,7 +33,6 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.this.token
 }
 
-# ✅ Helm provider configured the same way
 provider "helm" {
   kubernetes {
     host                   = aws_eks_cluster.this.endpoint
