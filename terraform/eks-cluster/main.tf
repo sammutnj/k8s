@@ -100,3 +100,26 @@ resource "aws_eks_node_group" "group2" {
     Name = "${var.cluster_name}-node-group-2"
   }
 }
+
+resource "helm_release" "ebs_csi_driver" {
+  name       = "aws-ebs-csi-driver"
+  repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+  chart      = "aws-ebs-csi-driver"
+  namespace  = "kube-system"
+  create_namespace = true
+
+  set {
+    name  = "controller.serviceAccount.create"
+    value = false
+  }
+
+  set {
+    name  = "controller.serviceAccount.name"
+    value = "ebs-csi-controller-sa"
+  }
+
+  set {
+    name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
+    value = "owned"
+  }
+}
