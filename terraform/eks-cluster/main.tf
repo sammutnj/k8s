@@ -21,33 +21,34 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Dynamically configure the Kubernetes provider after the cluster is ready
+provider "kubernetes" {
+  host                   = aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.this.token
+  load_config_file       = false
+}
+
+# EKS cluster auth data source for token
+data "aws_eks_cluster_auth" "this" {
+  name = aws_eks_cluster.this.name
+}
+
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = var.eks_cluster_role_arn
-
-  version = "1.28"
+  version  = "1.28"
 
   vpc_config {
     subnet_ids = [
-    "subnet-0750c0ee6baff8f23",
-    "subnet-077c56108854be58b",
-    "subnet-00db2399fd000cac4"
-  ]
+      "subnet-0750c0ee6baff8f23",
+      "subnet-077c56108854be58b",
+      "subnet-00db2399fd000cac4"
+    ]
     endpoint_public_access = true
   }
-
-  # # Use AWS managed encryption (no customer CMK)
-  # encryption_config {
-  #   resources = ["secrets"]
-  #   provider {
-  #     key_arn = null
-  #   }
-  # }
-
-  depends_on = [] # add if you need to order (e.g., IAM roles)
 }
 
-# First managed node group
 resource "aws_eks_node_group" "group1" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-node-group-1"
@@ -57,7 +58,6 @@ resource "aws_eks_node_group" "group1" {
     "subnet-077c56108854be58b",
     "subnet-00db2399fd000cac4"
   ]
-
   instance_types = ["t3.medium"]
 
   scaling_config {
@@ -66,18 +66,11 @@ resource "aws_eks_node_group" "group1" {
     min_size     = 1
   }
 
-  remote_access {
-    # Optional: define if you want SSH access
-    # ec2_ssh_key = "your-key-name"
-    # source_security_groups = [aws_security_group.sg.id]
-  }
-
   tags = {
     Name = "${var.cluster_name}-node-group-1"
   }
 }
 
-# Second managed node group (example)
 resource "aws_eks_node_group" "group2" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-node-group-2"
@@ -87,7 +80,6 @@ resource "aws_eks_node_group" "group2" {
     "subnet-077c56108854be58b",
     "subnet-00db2399fd000cac4"
   ]
-
   instance_types = ["t3.medium"]
 
   scaling_config {
@@ -101,23 +93,25 @@ resource "aws_eks_node_group" "group2" {
   }
 }
 
+# Kubernetes Service Account annotated with IAM Role
 resource "kubernetes_service_account" "ebs_csi_controller" {
   metadata {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
-
     annotations = {
       "eks.amazonaws.com/role-arn" = var.ebs_csi_iam_role_arn
     }
   }
+
+  depends_on = [aws_eks_node_group.group1, aws_eks_node_group.group2]
 }
 
-
+# Helm chart to install EBS CSI Driver
 resource "helm_release" "ebs_csi_driver" {
-  name       = "aws-ebs-csi-driver"
-  repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-  chart      = "aws-ebs-csi-driver"
-  namespace  = "kube-system"
+  name             = "aws-ebs-csi-driver"
+  repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+  chart            = "aws-ebs-csi-driver"
+  namespace        = "kube-system"
   create_namespace = true
 
   set {
@@ -135,7 +129,5 @@ resource "helm_release" "ebs_csi_driver" {
     value = "owned"
   }
 
-    depends_on = [
-    kubernetes_service_account.ebs_csi_controller
-    ]
+  depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
