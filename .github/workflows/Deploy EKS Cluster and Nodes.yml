@@ -1,4 +1,4 @@
-name: Deploy EKS Cluster & Nodes
+name: Deploy EKS Cluster & Resources
 
 on:
   workflow_dispatch:
@@ -39,114 +39,100 @@ jobs:
       EKS_NODEGROUP_IAM_ROLE_ARN: ${{ vars.EKS_NODEGROUP_IAM_ROLE_ARN }}
       LB_CONTROLLER_IAM_ROLE_ARN: ${{ vars.LB_CONTROLLER_IAM_ROLE_ARN }}
       VPC_ID: ${{ vars.VPC_ID }}
-      # SUBNET_IDA: ${{ vars.SUBNET_IDA }}
-      # SUBNET_IDB: ${{ vars.SUBNET_IDB }}
       ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ inputs.TF_VERSION }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.TF_VERSION }}
 
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
+    - name: Install AWS CLI
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-southeast-2
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Terraform Init
-        run: terraform init -upgrade
-        working-directory: terraform/eks-cluster
+    - name: Terraform Init
+      run: terraform init -upgrade
+      working-directory: terraform/eks-cluster
 
-      - name: Terraform Validate
-        run: terraform validate
-        working-directory: terraform/eks-cluster
-      - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan
-        working-directory: terraform/eks-cluster
-        env:
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_cluster_name: ${{ secrets.CLUSTER_NAME }}
-          TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
-          TF_VAR_vpc_id: ${{ env.VPC_ID }}
-          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
-          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-          TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+    - name: Terraform Apply Infrastructure
+      run: |
+        terraform apply -auto-approve \
+          -target=aws_eks_cluster.this \
+          -target=aws_eks_node_group.group1 \
+          -target=aws_eks_node_group.group2
+      working-directory: terraform/eks-cluster
+      env:
+        TF_VAR_aws_region: ${{ env.AWS_REGION }}
+        TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
+        TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
+        TF_VAR_vpc_id: ${{ env.VPC_ID }}
+        TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
+        TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+        TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+        TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
 
-      - name: Terraform Plan or Destroy
-        run: |
-          if [[ "${{ github.event.inputs.DESTROY }}" == "true" ]]; then
-            echo "Destroy mode active"
-            terraform destroy -auto-approve
-          else
-            echo "Plan + Apply mode active"
-            terraform plan \
-              -var="aws_region=${{ env.AWS_REGION }}" \
-              -var="cluster_name=${{ env.CLUSTER_NAME }}" \
-              -var="vpc_id=${{ env.VPC_ID }}" \
-              -out=tfplan
-            terraform apply -auto-approve tfplan
-          fi
-        working-directory: terraform/eks-cluster
-        env:
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
-          TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
-          TF_VAR_vpc_id: ${{ env.VPC_ID }}
-          TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
-          TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
-          TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
-          TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
-          TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
+    - name: Configure kubeconfig
+      run: |
+        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
+          --name ${{ env.CLUSTER_NAME }} \
+          --alias ${{ env.CLUSTER_NAME }}
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+    - name: Terraform Apply Kubernetes Resources
+      run: terraform apply -auto-approve
+      working-directory: terraform/eks-cluster
+      env:
+        TF_VAR_aws_region: ${{ env.AWS_REGION }}
+        TF_VAR_cluster_name: ${{ env.CLUSTER_NAME }}
+        TF_VAR_domain_name: ${{ env.DOMAIN_NAME }}
+        TF_VAR_vpc_id: ${{ env.VPC_ID }}
+        TF_VAR_acm_certificate_arn: ${{ env.ACM_CERTIFICATE_ARN }}
+        TF_VAR_ebs_csi_iam_role_arn: ${{ env.EBS_CSI_IAM_ROLE_ARN }}
+        TF_VAR_eks_cluster_role_arn: ${{ env.EKS_CLUSTER_IAM_ROLE_ARN }}
+        TF_VAR_nodegroup_role_arn: ${{ env.EKS_NODEGROUP_IAM_ROLE_ARN }}
+        TF_VAR_lb_controller_iam_role_arn: ${{ env.LB_CONTROLLER_IAM_ROLE_ARN }}
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: ${{ env.HELM_VERSION }}
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
 
-      - name: Configure kubeconfig
-        run: |
-          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig \
-            --name ${{ env.CLUSTER_NAME }} \
-            --alias ${{ env.CLUSTER_NAME }}
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
 
-      - name: Deploy Helm Chart
-        run: |
-          set +e
-          helm dependency update ./helm/nginx
-          helm upgrade --install nginx ./helm/nginx \
-            --namespace default \
-            --create-namespace \
-            --values ./helm/nginx/values.yaml \
-            --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=${{ env.ACM_CERTIFICATE_ARN }} \
-            --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
-            --atomic \
-            --timeout 15m
-          HELM_EXIT_CODE=$?
-          echo "Helm exited with code $HELM_EXIT_CODE"
-          echo "::group::Kubernetes Debug Info"
-          kubectl get all -A
-          kubectl describe pods -A
-          kubectl get events -A --sort-by='.lastTimestamp' | tail -n 50
-          echo "::endgroup::"
-          exit $HELM_EXIT_CODE
-        working-directory: ./
-
-
+    - name: Deploy Helm Chart
+      run: |
+        set +e
+        helm dependency update ./helm/nginx
+        helm upgrade --install nginx ./helm/nginx \
+          --namespace default \
+          --create-namespace \
+          --values ./helm/nginx/values.yaml \
+          --set ingress.annotations.alb\.ingress\.kubernetes\.io/certificate-arn=${{ env.ACM_CERTIFICATE_ARN }} \
+          --set ingress.hosts[0].host=${{ env.DOMAIN_NAME }} \
+          --atomic \
+          --timeout 15m
+        HELM_EXIT_CODE=$?
+        echo "Helm exited with code $HELM_EXIT_CODE"
+        echo "::group::Kubernetes Debug Info"
+        kubectl get all -A
+        kubectl describe pods -A
+        kubectl get events -A --sort-by='.lastTimestamp' | tail -n 50
+        echo "::endgroup::"
+        exit $HELM_EXIT_CODE
+      working-directory: ./
