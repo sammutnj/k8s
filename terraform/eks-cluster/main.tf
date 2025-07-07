@@ -43,6 +43,7 @@ provider "helm" {
   }
 }
 
+
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = var.eks_cluster_role_arn
@@ -103,12 +104,37 @@ resource "aws_eks_node_group" "group2" {
   }
 }
 
+resource "aws_iam_role" "ebs_csi_driver" {
+  name               = "ebs-csi-driver-role"  # Let Terraform create this
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/oidc.eks.${var.aws_region}.amazonaws.com/id/${local.oidc_provider_id}"
+      },
+      Action = "sts:AssumeRoleWithWebIdentity",
+      Condition = {
+        StringEquals = {
+          "oidc.eks.${var.aws_region}.amazonaws.com/id/${local.oidc_provider_id}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+        }
+      }
+    }]
+  })
+}
+
+# Attach the required policy
+resource "aws_iam_role_policy_attachment" "ebs_csi" {
+  role       = aws_iam_role.ebs_csi_driver.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
 resource "kubernetes_service_account" "ebs_csi_controller" {
   metadata {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
     annotations = {
-      "eks.amazonaws.com/role-arn" = var.ebs_csi_iam_role_arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn  # Use Terraform's role
     }
   }
 
