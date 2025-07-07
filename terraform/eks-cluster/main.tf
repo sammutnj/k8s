@@ -159,23 +159,39 @@ resource "helm_release" "ebs_csi_driver" {
   name       = "aws-ebs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
   chart      = "aws-ebs-csi-driver"
+  version    = "2.20.0" # Pin to a specific stable version
   namespace  = "kube-system"
 
+  # Increase timeout and enable atomic operations
+  timeout         = 900  # 15 minutes instead of default 300
+  atomic          = true # Automatically rollback on failure
+  cleanup_on_fail = true # Clean up if installation fails
+
+  # Reduce resource requests for smoother installation
   values = [
-    yamlencode({
-      controller = {
-        serviceAccount = {
-          create = false
-          name   = kubernetes_service_account.ebs_csi_controller.metadata[0].name
-        }
-        extraVolumeTags = {
-          "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-        }
-      }
-    })
+    <<-YAML
+    controller:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+    YAML
   ]
 
-  depends_on = [kubernetes_service_account.ebs_csi_controller]
+  set {
+    name  = "controller.serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "controller.serviceAccount.name"
+    value = kubernetes_service_account.ebs_csi_controller.metadata[0].name
+  }
+
+  depends_on = [
+    kubernetes_service_account.ebs_csi_controller,
+    aws_iam_role_policy_attachment.ebs_csi
+  ]
 }
 
 
