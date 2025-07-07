@@ -119,28 +119,24 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
 }
 
 resource "helm_release" "ebs_csi_driver" {
-  name             = "aws-ebs-csi-driver"
-  repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-  chart            = "aws-ebs-csi-driver"
-  namespace        = "kube-system"
-  create_namespace = true
+  name       = "aws-ebs-csi-driver"
+  repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+  chart      = "aws-ebs-csi-driver"
+  namespace  = "kube-system"
 
-  set {
-    name  = "controller.serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "controller.serviceAccount.name"
-    value = kubernetes_service_account.ebs_csi_controller.metadata[0].name
-  }
-
-  set_sensitive {
-    name  = "controller.extraVolumeTags"
-    value = jsonencode({
-      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  values = [
+    yamlencode({
+      controller = {
+        serviceAccount = {
+          create = false
+          name   = kubernetes_service_account.ebs_csi_controller.metadata[0].name
+        }
+        extraVolumeTags = {
+          "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+        }
+      }
     })
-  }
+  ]
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
