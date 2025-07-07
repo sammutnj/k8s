@@ -1,3 +1,14 @@
+data "aws_caller_identity" "current" {}
+
+# Extract OIDC provider ID from cluster URL
+locals {
+  oidc_provider_id = replace(
+    data.aws_eks_cluster.this.identity[0].oidc[0].issuer,
+    "https://oidc.eks.${var.aws_region}.amazonaws.com/id/",
+    ""
+  )
+}
+
 terraform {
   required_version = ">= 1.8.0"
 
@@ -105,7 +116,7 @@ resource "aws_eks_node_group" "group2" {
 }
 
 resource "aws_iam_role" "ebs_csi_driver" {
-  name               = "ebs-csi-driver-role"  # Let Terraform create this
+  name = "ebs-csi-driver-role" # Let Terraform create this
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -134,7 +145,7 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
     annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn  # Use Terraform's role
+      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn # Use Terraform's role
     }
   }
 
