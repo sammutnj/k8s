@@ -48,3 +48,13 @@ variable "ebs_csi_iam_role_arn" {
   type        = string
 }
 
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for the ingress"
+  type        = string
+}
+
+variable "domain_name" {
+  description = "Domain name for the ingress"
+  type        = string
+}
+
