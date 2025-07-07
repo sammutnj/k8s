@@ -127,6 +127,10 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+    - name: Terraform Init (Cleanup)
+      run: terraform init -upgrade
+      working-directory: terraform/eks-cluster
+
     - name: Destroy Infrastructure
       run: terraform destroy -auto-approve
       working-directory: terraform/eks-cluster
