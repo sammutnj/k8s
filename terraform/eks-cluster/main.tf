@@ -136,7 +136,7 @@ resource "helm_release" "ebs_csi_driver" {
   }
 
   set_sensitive {
-    name = "controller.extraVolumeTags"
+    name  = "controller.extraVolumeTags"
     value = jsonencode({
       "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     })
@@ -144,4 +144,5 @@ resource "helm_release" "ebs_csi_driver" {
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
+
 
