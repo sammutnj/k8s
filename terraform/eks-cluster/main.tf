@@ -135,10 +135,13 @@ resource "helm_release" "ebs_csi_driver" {
     value = kubernetes_service_account.ebs_csi_controller.metadata[0].name
   }
 
-  set {
-    name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
-    value = "owned"
+  set_sensitive {
+    name = "controller.extraVolumeTags"
+    value = jsonencode({
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    })
   }
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
+
