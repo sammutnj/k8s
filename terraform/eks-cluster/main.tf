@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.8.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -10,7 +12,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.13.0"
+      version = "~> 2.13.0"
     }
   }
 }
@@ -19,22 +21,24 @@ provider "aws" {
   region = var.aws_region
 }
 
-# EKS cluster auth token
-data "aws_eks_cluster_auth" "this" {
-  name = aws_eks_cluster.this.name
+data "aws_eks_cluster" "this" {
+  name = var.cluster_name
 }
 
-# Kubernetes provider config using EKS cluster data
+data "aws_eks_cluster_auth" "this" {
+  name = var.cluster_name
+}
+
 provider "kubernetes" {
-  host                   = aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
+  host                   = data.aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.this.token
 }
 
 provider "helm" {
   kubernetes {
-    host                   = aws_eks_cluster.this.endpoint
-    cluster_ca_certificate = base64decode(aws_eks_cluster.this.certificate_authority[0].data)
+    host                   = data.aws_eks_cluster.this.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
     token                  = data.aws_eks_cluster_auth.this.token
   }
 }
@@ -53,6 +57,7 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access = true
   }
 }
+
 
 resource "aws_eks_node_group" "group1" {
   cluster_name    = aws_eks_cluster.this.name
@@ -107,7 +112,10 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
     }
   }
 
-  depends_on = [aws_eks_node_group.group1, aws_eks_node_group.group2]
+  depends_on = [
+    aws_eks_node_group.group1,
+    aws_eks_node_group.group2
+  ]
 }
 
 resource "helm_release" "ebs_csi_driver" {
@@ -117,23 +125,20 @@ resource "helm_release" "ebs_csi_driver" {
   namespace        = "kube-system"
   create_namespace = true
 
-  set = [
-    {
-      name  = "controller.serviceAccount.create"
-      value = "false"
-    },
-    {
-      name  = "controller.serviceAccount.name"
-      value = "ebs-csi-controller-sa"
-    },
-    {
-      name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
-      value = "owned"
-    }
-  ]
+  set {
+    name  = "controller.serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "controller.serviceAccount.name"
+    value = kubernetes_service_account.ebs_csi_controller.metadata[0].name
+  }
+
+  set {
+    name  = "controller.extraVolumeTags.kubernetes.io/cluster/${var.cluster_name}"
+    value = "owned"
+  }
 
   depends_on = [kubernetes_service_account.ebs_csi_controller]
 }
-
-
-
